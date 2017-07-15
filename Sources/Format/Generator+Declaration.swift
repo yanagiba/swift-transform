@@ -12,7 +12,6 @@ extension Generator {
     // MARK: Declarations
     
     open func generate(_ declaration: Declaration) -> String {
-        // TODO: Implement all to prevent recursive calls
         switch declaration {
         case let decl as ClassDeclaration:
             return generate(decl)
