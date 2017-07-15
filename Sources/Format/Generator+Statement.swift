@@ -236,5 +236,4 @@ extension Generator {
         return "#available(\(argumentsText))"
     }
     
-    
 }

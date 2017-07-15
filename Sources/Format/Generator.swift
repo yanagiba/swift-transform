@@ -83,6 +83,10 @@ extension Generator {
         return "where \(clause.requirementList.map(generate).joined(separator: ", "))"
     }
     
+    open func generate(_ clause: GenericArgumentClause) -> String {
+        return "<\(clause.argumentList.map(generate).joined(separator: ", "))>"
+    }
+    
     open func generate(_ node: ThrowsKind) -> String {
         switch node {
         case .nothrowing: return ""
@@ -90,4 +94,5 @@ extension Generator {
         case .rethrowing: return "rethrows"
         }
     }
+    
 }
