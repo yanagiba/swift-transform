@@ -12,10 +12,26 @@ switch foo {
 case let (x, y) where x == y:
   print(x)
   print(y)
+case var (z):
+  print(z)
 }
 switch foo {
 case 1, 2, 3, x where x < 0:
   foo = 0
+}
+switch foo {
+case .a:
+  print("a")
+case .b(b?):
+  print(b)
+case C.d:
+  print("c")
+}
+switch foo {
+case is Foo:
+  print("foo")
+case let bar as Bar:
+  print(bar)
 }
 switch controlExpression {
 case pattern1:

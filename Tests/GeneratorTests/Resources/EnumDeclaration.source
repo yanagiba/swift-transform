@@ -45,6 +45,15 @@ enum Foo: Int {
 enum Foo: Int {
   case a = 1, b, c = 999
 }
+enum Foo: Double {
+  case a = 1.2, b, c = 3.45
+}
+enum Foo: String {
+  case a = "foo", b, c = "bar"
+}
+enum Foo: Bool {
+  case a = true, b, c = false
+}
 indirect enum Foo {
   indirect case a(Foo)
 }
@@ -79,9 +88,9 @@ enum Foo: Int {
 enum Foo: Int {
   let a = 1
   case a
-  let b = 2 
+  let b = 2
   case b = 1
-  let c = 3 
+  let c = 3
   case c = 999
   let d = 4
 }

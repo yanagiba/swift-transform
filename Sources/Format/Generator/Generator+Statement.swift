@@ -128,7 +128,7 @@ extension Generator {
     return descr
   }
 
-  open func generate(_ statement: GuardStatement ) -> String {
+  open func generate(_ statement: GuardStatement) -> String {
     return "guard \(generate(statement.conditionList)) else \(generate(statement.codeBlock))"
   }
 

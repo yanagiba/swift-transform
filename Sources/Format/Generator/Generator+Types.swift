@@ -50,7 +50,7 @@ extension Generator {
     }
   }
 
-  open func generate(_ type: AnyType ) -> String {
+  open func generate(_ type: AnyType) -> String {
     return "Any"
   }
 

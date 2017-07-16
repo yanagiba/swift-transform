@@ -506,7 +506,7 @@ extension Generator {
     return modifiers.map(generate).joined(separator: " ")
   }
 
-  open func generate(_ modifier: DeclarationModifier ) -> String {
+  open func generate(_ modifier: DeclarationModifier) -> String {
     switch modifier {
     case .class:
       return "class"

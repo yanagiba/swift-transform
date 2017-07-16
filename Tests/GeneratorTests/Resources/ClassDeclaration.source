@@ -31,6 +31,9 @@ class Foo {
 class Foo {
   let a = 1
   var b = 2
+  lazy var c: Int = {
+    return 1
+  }()
 }
 class Foo {
   class Bar {
