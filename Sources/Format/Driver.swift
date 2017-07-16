@@ -39,7 +39,7 @@ open class Driver {
   @discardableResult public func format(sourceFile: SourceFile) -> Int32 {
     let parser = Parser(source: sourceFile)
     guard let topLevelDecl = try? parser.parse() else {
-      print("Failed in parsing file \(sourceFile.path)")
+      print("Failed in parsing file \(sourceFile.identifier)")
       // Ignore the errors for now
       return -1
     }
