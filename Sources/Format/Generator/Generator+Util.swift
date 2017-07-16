@@ -17,11 +17,11 @@
 import AST
 
 extension Generator {
-    open func generate(_ node: ThrowsKind) -> String {
-        switch node {
-        case .nothrowing: return ""
-        case .throwing: return "throws"
-        case .rethrowing: return "rethrows"
-        }
+  open func generate(_ node: ThrowsKind) -> String {
+    switch node {
+    case .nothrowing: return ""
+    case .throwing: return "throws"
+    case .rethrowing: return "rethrows"
     }
+  }
 }
