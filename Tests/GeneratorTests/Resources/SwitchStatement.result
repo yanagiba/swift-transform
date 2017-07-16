@@ -26,6 +26,12 @@ case .b(b?):
   print(b)
 case C.d:
   print("c")
+case .e?:
+  print("e")
+case _?:
+  print("f")
+case (x, y: _, _)?:
+  print(x)
 }
 switch foo {
 case is Foo:

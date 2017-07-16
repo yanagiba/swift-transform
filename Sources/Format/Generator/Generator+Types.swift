@@ -94,11 +94,11 @@ extension Generator {
   }
 
   open func generate(_ type: OptionalType) -> String {
-    return "Optional<\(generate(type.wrappedType))>"
+    return "\(generate(type.wrappedType))?"
   }
 
   open func generate(_ type: ProtocolCompositionType) -> String {
-    return "protocol<\(type.protocolTypes.map(generate).joined(separator: ", "))>"
+    return type.protocolTypes.map(generate).joined(separator: " & ")
   }
 
   open func generate(_ type: SelfType) -> String {

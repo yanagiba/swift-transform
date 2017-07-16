@@ -39,6 +39,7 @@ protocol Foo {
 }
 protocol Foo {
   func foo()
+  optional func bar()
   @discardableResult public func foo<String>(a: A, b: B, c: C) where A: String
 }
 protocol Foo {

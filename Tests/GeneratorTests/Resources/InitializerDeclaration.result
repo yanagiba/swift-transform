@@ -8,7 +8,7 @@ init!() {
 @a @b @c init() {}
 fileprivate convenience required init() {}
 @a @b @c private override init() {}
-init<A, B: C, D: protocol<E, F, G>>() {}
+init<A, B: C, D: E & F & G>() {}
 init(bar: Bar) {}
 init(bar: inout Bar) {}
 init(_b bar: Bar) {}

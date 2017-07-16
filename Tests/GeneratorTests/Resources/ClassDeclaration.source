@@ -34,6 +34,11 @@ class Foo {
   lazy var c: Int = {
     return 1
   }()
+  weak var d: D?
+  unowned var e: E?
+  unowned(safe) var f: F???
+  unowned(unsafe) var g: G & H
+  dynamic var i: Int
 }
 class Foo {
   class Bar {
