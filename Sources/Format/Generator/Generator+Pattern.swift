@@ -1,14 +1,23 @@
-//
-//  Generator+Pattern.swift
-//  Format
-//
-//  Created by Angel Garcia on 14/07/2017.
-//
+/*
+   Copyright 2017 Ryuichi Saito, LLC and the Yanagiba project contributors
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 
 import AST
 
 extension Generator {
-    
+
     open func generate(_ pattern: Pattern) -> String {
         switch pattern {
         case let pattern as EnumCasePattern:
@@ -31,19 +40,19 @@ extension Generator {
             return pattern.textDescription
         }
     }
-    
+
     open func generate(_ pattern: EnumCasePattern) -> String {
         return "\(pattern.typeIdentifier.map(generate) ?? "").\(pattern.name)\(pattern.tuplePattern.map(generate) ?? "")"
     }
-    
+
     open func generate(_ pattern: ExpressionPattern) -> String {
         return generate(pattern.expression)
     }
-    
+
     open func generate(_ pattern: IdentifierPattern) -> String {
         return "\(pattern.identifier)\(pattern.typeAnnotation.map(generate) ?? "")"
     }
-    
+
     open func generate(_ pattern: OptionalPattern) -> String {
         switch pattern.kind {
         case .identifier(let idPttrn):
@@ -56,13 +65,13 @@ extension Generator {
             return "\(generate(tuplePttrn))?"
         }
     }
-    
+
     open func generate(_ pattern: TuplePattern) -> String {
         let elemStr = pattern.elementList.map(generate).joined(separator: ", ")
         let annotationStr = pattern.typeAnnotation.map(generate) ?? ""
         return "(\(elemStr))\(annotationStr)"
     }
-    
+
     open func generate(_ pattern: TuplePattern.Element) -> String {
         switch pattern {
         case .pattern(let pattern):
@@ -71,7 +80,7 @@ extension Generator {
             return "\(name): \(generate(pattern))"
         }
     }
-    
+
     open func generate(_ pattern: TypeCastingPattern) -> String {
         switch pattern.kind {
         case .is(let type):
@@ -80,7 +89,7 @@ extension Generator {
             return "\(generate(pattern)) as \(generate(type))"
         }
     }
-    
+
     open func generate(_ pattern: ValueBindingPattern) -> String {
         switch pattern.kind {
         case .var(let pattern):
@@ -89,9 +98,9 @@ extension Generator {
             return "let \(generate(pattern))"
         }
     }
-    
+
     open func generate(_ pattern: WildcardPattern) -> String {
         return "_\(pattern.typeAnnotation.map(generate) ?? "")"
     }
-    
+
 }

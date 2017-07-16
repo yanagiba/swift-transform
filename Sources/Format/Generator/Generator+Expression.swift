@@ -1,15 +1,24 @@
-//
-//  Generator+Expression.swift
-//  Format
-//
-//  Created by Angel Garcia on 14/07/2017.
-//
+/*
+   Copyright 2017 Ryuichi Saito, LLC and the Yanagiba project contributors
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 
 import AST
 
 extension Generator {
-    
-    open func generate(_ expression: Expression) -> String {        
+
+    open func generate(_ expression: Expression) -> String {
         switch expression {
         case let expr as AssignmentOperatorExpression:
             return generate(expr)
@@ -67,41 +76,41 @@ extension Generator {
             return expression.textDescription
         }
     }
-    
+
     open func generate(_ expression: AssignmentOperatorExpression) -> String {
         return "\(generate(expression.leftExpression)) = \(generate(expression.rightExpression))"
     }
-    
+
     open func generate(_ expression: BinaryOperatorExpression) -> String {
         return "\(generate(expression.leftExpression)) \(expression.binaryOperator) \(generate(expression.rightExpression))"
     }
-    
+
     open func generate(_ expression: ClosureExpression) -> String {
         var signatureText = ""
         var stmtsText = ""
-        
+
         if let signature = expression.signature {
             signatureText = " \(generate(signature)) in"
             if expression.statements == nil {
                 stmtsText = " "
             }
         }
-        
+
         if let stmts = expression.statements {
             if expression.signature == nil && stmts.count == 1 {
                 stmtsText = " \(generate(stmts)) "
             } else {
-                stmtsText = "\n\(generate(stmts))\n"
+                stmtsText = "\n\(generate(stmts).indent)\n"
             }
         }
-        
+
         return "{\(signatureText)\(stmtsText)}"
     }
-    
+
     open func generate(_ expression: ClosureExpression.Signature.CaptureItem.Specifier) -> String {
         return expression.rawValue
     }
-    
+
     open func generate(_ expression: ClosureExpression.Signature.CaptureItem) -> String {
         let exprText = generate(expression.expression)
         guard let specifier = expression.specifier else {
@@ -109,7 +118,7 @@ extension Generator {
         }
         return "\(generate(specifier)) \(exprText)"
     }
-    
+
     open func generate(_ expression: ClosureExpression.Signature.ParameterClause.Parameter) -> String {
         var paramText = expression.name
         if let typeAnnotation = expression.typeAnnotation {
@@ -120,7 +129,7 @@ extension Generator {
         }
         return paramText
     }
-    
+
     open func generate(_ expression: ClosureExpression.Signature.ParameterClause) -> String {
         switch expression {
         case .parameterList(let params):
@@ -129,7 +138,7 @@ extension Generator {
             return idList.textDescription
         }
     }
-    
+
     open func generate(_ expression: ClosureExpression.Signature) -> String {
         var signatureText = [String]()
         if let captureList = expression.captureList {
@@ -146,7 +155,7 @@ extension Generator {
         }
         return signatureText.joined(separator: " ")
     }
-    
+
     open func generate(_ expression: ExplicitMemberExpression) -> String {
         switch expression.kind {
         case let .tuple(postfixExpr, index):
@@ -165,11 +174,11 @@ extension Generator {
             return textDesc
         }
     }
-    
+
     open func generate(_ expression: ForcedValueExpression) -> String {
         return "\(generate(expression.postfixExpression))!"
     }
-    
+
     open func generate(_ expression: FunctionCallExpression) -> String {
         var parameterText = ""
         if let argumentClause = expression.argumentClause {
@@ -182,7 +191,7 @@ extension Generator {
         }
         return "\(generate(expression.postfixExpression))\(parameterText)\(trailingText)"
     }
-    
+
     open func generate(_ expression: FunctionCallExpression.Argument) -> String {
         switch expression {
         case .expression(let expr):
@@ -199,7 +208,7 @@ extension Generator {
             return "\(identifier): \(op)"
         }
     }
-    
+
     open func generate(_ expression: IdentifierExpression) -> String {
         switch expression.kind {
         case let .identifier(id, generic):
@@ -208,15 +217,15 @@ extension Generator {
             return "$\(i)\(generic.map(generate) ?? "")"
         }
     }
-    
+
     open func generate(_ expression: ImplicitMemberExpression) -> String {
         return ".\(expression.identifier)"
     }
-    
+
     open func generate(_ expression: InOutExpression) -> String {
         return "&\(expression.identifier)"
     }
-    
+
     open func generate(_ expression: InitializerExpression) -> String {
         var textDesc = "\(generate(expression.postfixExpression)).init"
         if !expression.argumentNames.isEmpty {
@@ -225,11 +234,11 @@ extension Generator {
         }
         return textDesc
     }
-    
+
     open func generate(_ expression: KeyPathStringExpression) -> String {
         return "#keyPath(\(generate(expression.expression)))"
     }
-    
+
     open func generate(_ expression: LiteralExpression) -> String {
         switch expression.kind {
         case .nil:
@@ -254,27 +263,27 @@ extension Generator {
             return "[\(dictText)]"
         }
     }
-    
+
     open func generate(_ expression: OptionalChainingExpression) -> String {
         return "\(generate(expression.postfixExpression))?"
     }
-    
+
     open func generate(_ expression: ParenthesizedExpression) -> String {
         return "(\(generate(expression.expression)))"
     }
-    
+
     open func generate(_ expression: PostfixOperatorExpression) -> String {
         return "\(generate(expression.postfixExpression))\(expression.postfixOperator)"
     }
-    
+
     open func generate(_ expression: PostfixSelfExpression) -> String {
         return "\(generate(expression.postfixExpression)).self"
     }
-    
+
     open func generate(_ expression: PrefixOperatorExpression) -> String {
         return "\(expression.prefixOperator)\(generate(expression.postfixExpression))"
     }
-    
+
     open func generate(_ expression: SelectorExpression) -> String {
         switch expression.kind {
         case .selector(let expr):
@@ -292,7 +301,7 @@ extension Generator {
             return "#selector(\(textDesc))"
         }
     }
-    
+
     open func generate(_ expression: SelfExpression) -> String {
         switch expression.kind {
         case .self:
@@ -305,11 +314,11 @@ extension Generator {
             return "self.init"
         }
     }
-    
+
     open func generate(_ expression: SubscriptExpression) -> String {
         return "\(generate(expression.postfixExpression))[\(generate(expression.expressionList))]"
     }
-    
+
     open func generate(_ expression: SuperclassExpression) -> String {
         switch expression.kind {
         case .method(let name):
@@ -320,11 +329,11 @@ extension Generator {
             return "super.init"
         }
     }
-    
+
     open func generate(_ expression: TernaryConditionalOperatorExpression) -> String {
         return "\(generate(expression.conditionExpression)) ? \(generate(expression.trueExpression)) : \(generate(expression.falseExpression))"
     }
-    
+
     open func generate(_ expression: TryOperatorExpression) -> String {
         let tryText: String
         let exprText: String
@@ -341,12 +350,12 @@ extension Generator {
         }
         return "\(tryText) \(exprText)"
     }
-    
+
     open func generate(_ expression: TupleExpression) -> String {
         if expression.elementList.isEmpty {
             return "()"
         }
-        
+
         let listText: [String] = expression.elementList.map { element in
             var idText = ""
             if let id = element.identifier {
@@ -356,7 +365,7 @@ extension Generator {
         }
         return "(\(listText.joined(separator: ", ")))"
     }
-    
+
     open func generate(_ expression: TypeCastingOperatorExpression) -> String {
         let exprText: String
         let operatorText: String
@@ -381,16 +390,16 @@ extension Generator {
         }
         return "\(exprText) \(operatorText) \(typeText)"
     }
-    
+
     open func generate(_ expression: WildcardExpression) -> String {
         return "_"
     }
-    
-    
+
+
     // MARK: Utils
-    
+
     open func generate(_ expression: DictionaryEntry) -> String {
         return "\(generate(expression.key)): \(generate(expression.value))"
     }
-    
+
 }
