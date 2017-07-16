@@ -18,6 +18,7 @@ import XCTest
 
 import CrithagraTests
 import FormatTests
+import GeneratorTests
 
 var tests = [XCTestCaseEntry]()
 tests += CrithagraTests.allTests()
