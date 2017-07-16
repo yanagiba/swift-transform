@@ -55,7 +55,7 @@ extension Generator {
   }
 
   open func generate(_ topLevelDeclaration: TopLevelDeclaration) -> String {
-    return topLevelDeclaration.statements.map(generate).joined(separator: "\n")
+    return topLevelDeclaration.statements.map(generate).joined(separator: "\n") + "\n"
   }
 
   open func generate(_ codeBlock: CodeBlock) -> String {
@@ -217,7 +217,7 @@ extension Generator {
     let whereText = declaration.genericWhereClause.map({ " \(generate($0))" }) ?? ""
     let neckText = "\(genericParameterClauseText)\(typeText)\(whereText)"
     let membersText = declaration.members.map(generate).joined(separator: "\n")
-    let memberText = declaration.members.isEmpty ? "" : "\n\(membersText)\n"
+    let memberText = declaration.members.isEmpty ? "" : "\n\(membersText.indent)\n"
     return "\(headText)\(neckText) {\(memberText)}"
   }
 
@@ -238,7 +238,7 @@ extension Generator {
     let whereText = declaration.genericWhereClause.map({ " \(generate($0))" }) ?? ""
     let neckText = "\(typeInheritanceText)\(whereText)"
     let membersText = declaration.members.map(generate).joined(separator: "\n")
-    let memberText = declaration.members.isEmpty ? "" : "\n\(membersText)\n"
+    let memberText = declaration.members.isEmpty ? "" : "\n\(membersText.indent)\n"
     return "\(headText)\(neckText) {\(memberText)}"
   }
 

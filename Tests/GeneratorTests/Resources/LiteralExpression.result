@@ -1,0 +1,60 @@
+nil
+true
+false
+0b0
+0o01_67_24_35
+-0xFF_eb_ca_DA
+10_0.000_3
+-0xa_1.eaP-1_5
+""
+"The quick brown fox jumps over the lazy dog"
+"\("helloworld")a\("foo")\("bar")z"
+"1 2 \(1 + 2)"
+"""
+The White Rabbit put on his spectacles.  "Where shall I begin,
+please your Majesty?" he asked.
+
+"Begin at the beginning," the King said gravely, "and go on
+till you come to the end; then stop."
+"""
+"""
+  The White Rabbit put on his spectacles.  "Where shall I begin,
+  please your Majesty?" he asked.
+
+  "Begin at the beginning," the King said gravely, "and go on
+  till you come to the end; then stop."
+  """
+"""
+Escaping the first quote \"""
+Escaping all three quotes \"\"\"
+"""
+"""
+
+This string starts with a line feed.
+It also ends with a line feed.
+
+"""
+"""
+  \("""
+helloworld
+""")a\("foo")\("bar")z
+  """
+"""
+  \("""
+    hello
+    world
+    """)
+  a
+  \("foo")
+  \("bar")
+  z
+  """
+_ = []
+_ = [1, 2, 3]
+_ = [_, [:], foo()]
+_ = [:]
+_ = ["foo": true, "bar": foo { return bar }]
+_ = #file
+_ = #line
+_ = #column
+_ = #function

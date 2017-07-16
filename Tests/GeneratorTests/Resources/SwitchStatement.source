@@ -14,20 +14,20 @@
    limitations under the License.
 */
 
-import XCTest
+switch foo {}
+switch foo { default: () }
+switch foo { case 1: print(1); foo = 2; }
+switch foo { case let (x, y) where x == y: print(x); print(y); }
+switch foo { case 1, 2, 3, x where x < 0: foo = 0; }
 
-@testable import AST
-@testable import Format
-
-class GeneratorTests : XCTestCase {
-  private let _generator = Generator()
-
-  func testEmptyTopLevelDeclaration() {
-    let formatted = _generator.generate(TopLevelDeclaration())
-    XCTAssertEqual(formatted, "\n")
-  }
-
-  static var allTests = [
-    ("testEmptyTopLevelDeclaration", testEmptyTopLevelDeclaration),
-  ]
+switch controlExpression {
+case pattern1:
+  statements
+case pattern2 where condition:
+  statements
+case pattern3 where condition,
+     pattern4 where condition:
+  statements
+default:
+  statements
 }

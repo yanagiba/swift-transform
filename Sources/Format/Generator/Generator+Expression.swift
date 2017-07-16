@@ -253,7 +253,8 @@ extension Generator {
     case let .interpolatedString(_, rawText):
       return rawText
     case .array(let exprs):
-      return "[\(generate(exprs))]"
+      let arrayText = exprs.map(generate).joined(separator: ", ")
+      return "[\(arrayText)]"
     case .dictionary(let entries):
       if entries.isEmpty {
         return "[:]"
@@ -308,14 +309,16 @@ extension Generator {
     case .method(let name):
       return "self.\(name)"
     case .subscript(let exprs):
-      return "self[\(generate(exprs))]"
+      let exprsText = exprs.map(generate).joined(separator: ", ")
+      return "self[\(exprsText)]"
     case .initializer:
       return "self.init"
     }
   }
 
   open func generate(_ expression: SubscriptExpression) -> String {
-    return "\(generate(expression.postfixExpression))[\(generate(expression.expressionList))]"
+    let exprsText = expression.expressionList.map(generate).joined(separator: ", ")
+    return "\(generate(expression.postfixExpression))[\(exprsText)]"
   }
 
   open func generate(_ expression: SuperclassExpression) -> String {
@@ -323,7 +326,8 @@ extension Generator {
     case .method(let name):
       return "super.\(name)"
     case .subscript(let exprs):
-      return "super[\(generate(exprs))]"
+      let exprsText = exprs.map(generate).joined(separator: ", ")
+      return "super[\(exprsText)]"
     case .initializer:
       return "super.init"
     }

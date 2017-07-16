@@ -16,18 +16,10 @@
 
 import XCTest
 
-@testable import AST
-@testable import Format
-
-class GeneratorTests : XCTestCase {
-  private let _generator = Generator()
-
-  func testEmptyTopLevelDeclaration() {
-    let formatted = _generator.generate(TopLevelDeclaration())
-    XCTAssertEqual(formatted, "\n")
-  }
-
-  static var allTests = [
-    ("testEmptyTopLevelDeclaration", testEmptyTopLevelDeclaration),
+#if !os(macOS)
+public func allTests() -> [XCTestCaseEntry] {
+  return [
+    testCase(GeneratorTests.allTests),
   ]
 }
+#endif

@@ -140,7 +140,7 @@ extension Generator {
     return "if \(generate(statement.conditionList)) \(generate(statement.codeBlock))\(elseText)"
   }
 
-  open func generate(_ statement: IfStatement.ElseClause ) -> String {
+  open func generate(_ statement: IfStatement.ElseClause) -> String {
     switch statement {
     case .else(let codeBlock):
       return "else \(generate(codeBlock))"
@@ -150,7 +150,7 @@ extension Generator {
   }
 
   open func generate(_ statement: LabeledStatement) -> String {
-    return "\(statement.labelName): \(generate(statement))"
+    return "\(statement.labelName): \(generate(statement.statement))"
   }
 
   open func generate(_ statement: RepeatWhileStatement) -> String {
