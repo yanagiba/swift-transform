@@ -39,11 +39,7 @@ extension Generator {
       return generate(type)
     case let type as TupleType:
       return generate(type)
-    case let type as TypeAnnotation:
-      return generate(type)
     case let type as TypeIdentifier:
-      return generate(type)
-    case let type as TypeInheritanceClause:
       return generate(type)
     default:
       return type.textDescription
