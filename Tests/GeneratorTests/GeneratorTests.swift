@@ -96,6 +96,9 @@ class GeneratorTests : XCTestCase {
 
       // attributes
       "Attribute",
+
+      // types
+      "Type",
     ]
     for testName in testNames {
       runTest(resourceName, testName) { source -> String in

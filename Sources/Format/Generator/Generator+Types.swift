@@ -55,11 +55,11 @@ extension Generator {
   }
 
   open func generate(_ type: ArrayType) -> String {
-    return "Array<\(generate(type.elementType))>"
+    return "[\(generate(type.elementType))]"
   }
 
   open func generate(_ type: DictionaryType) -> String {
-    return "Dictionary<\(generate(type.keyType)), \(generate(type.valueType))>"
+    return "[\(generate(type.keyType)): \(generate(type.valueType))]"
   }
 
   open func generate(_ type: FunctionType) -> String {
@@ -81,15 +81,15 @@ extension Generator {
   }
 
   open func generate(_ type: ImplicitlyUnwrappedOptionalType) -> String {
-    return "ImplicitlyUnwrappedOptional<\(generate(type.wrappedType))>"
+    return "\(generate(type.wrappedType))!"
   }
 
   open func generate(_ type: MetatypeType) -> String {
     switch type.kind {
     case .type:
-      return "Type<\(generate(type.referenceType))>"
+      return "\(generate(type.referenceType)).Type"
     case .protocol:
-      return "Protocol<\(generate(type.referenceType))>"
+      return "\(generate(type.referenceType)).Protocol"
     }
   }
 
