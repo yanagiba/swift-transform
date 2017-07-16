@@ -93,6 +93,9 @@ class GeneratorTests : XCTestCase {
       "SubscriptDeclaration",
       "TypealiasDeclaration",
       "VariableDeclaration",
+
+      // attributes
+      "Attribute",
     ]
     for testName in testNames {
       runTest(resourceName, testName) { source -> String in
