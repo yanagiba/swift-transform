@@ -14,20 +14,12 @@
    limitations under the License.
 */
 
-import XCTest
+defer {
+  break
+}
 
-@testable import AST
-@testable import Format
-
-class GeneratorTests : XCTestCase {
-  private let _generator = Generator()
-
-  func testEmptyTopLevelDeclaration() {
-    let formatted = _generator.generate(TopLevelDeclaration())
-    XCTAssertEqual(formatted, "\n")
+defer {
+  defer {
+    return
   }
-
-  static var allTests = [
-    ("testEmptyTopLevelDeclaration", testEmptyTopLevelDeclaration),
-  ]
 }

@@ -17,9 +17,5 @@
 import AST
 
 open class Generator {
-  public init() {}
-
-  open func generate(_ topLevelDeclaration: TopLevelDeclaration) -> String {
-    return topLevelDeclaration.textDescription
-  }
+    public init() {}
 }

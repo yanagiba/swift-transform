@@ -14,20 +14,13 @@
    limitations under the License.
 */
 
-import XCTest
-
-@testable import AST
-@testable import Format
-
-class GeneratorTests : XCTestCase {
-  private let _generator = Generator()
-
-  func testEmptyTopLevelDeclaration() {
-    let formatted = _generator.generate(TopLevelDeclaration())
-    XCTAssertEqual(formatted, "\n")
-  }
-
-  static var allTests = [
-    ("testEmptyTopLevelDeclaration", testEmptyTopLevelDeclaration),
-  ]
-}
+@a @b @c class Foo {}
+@a() struct Foo {}
+@a(foo) struct Foo {}
+@foo(()(xyz())) struct Foo {}
+@available(*, unavailable, renamed: "MyRenamedProtocol") struct Foo {} class Foo {}
+@foo([][xyz[]]) protocol Foo {}
+@foo({}{xyz{}}) protocol Foo {}
+@a(h()t) enum Foo {}
+@a(h[]t) enum Foo {}
+@a(h{}t) enum Foo {}

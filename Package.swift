@@ -65,6 +65,12 @@ let package = Package(
         "Format",
       ]
     ),
+    .testTarget(
+      name: "GeneratorTests",
+      dependencies: [
+        "Format",
+      ]
+    ),
   ],
   swiftLanguageVersions: [4]
 )

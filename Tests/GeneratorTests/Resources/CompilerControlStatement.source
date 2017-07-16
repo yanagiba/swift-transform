@@ -14,20 +14,13 @@
    limitations under the License.
 */
 
-import XCTest
+#if os(macOS)
+  break
+#elseif swift(>=3.1)
+  return
+#else
+  continue
+#endif
 
-@testable import AST
-@testable import Format
-
-class GeneratorTests : XCTestCase {
-  private let _generator = Generator()
-
-  func testEmptyTopLevelDeclaration() {
-    let formatted = _generator.generate(TopLevelDeclaration())
-    XCTAssertEqual(formatted, "\n")
-  }
-
-  static var allTests = [
-    ("testEmptyTopLevelDeclaration", testEmptyTopLevelDeclaration),
-  ]
-}
+#sourceLocation(file: "filename", line: 10)
+#sourceLocation()

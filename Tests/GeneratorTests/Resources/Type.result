@@ -1,0 +1,18 @@
+let foo: Any
+let foo: [Foo]
+let foo: [Foo: Bar]
+let foo: (String?) -> Void
+typealias Foo = @foo (String?) -> Void
+let foo: (bar: @a inout String?) -> Void
+let foo: (bar b: String...) -> Void
+let foo: Foo!
+let foo: Foo?
+let foo: Foo.Type
+let foo: Foo.Protocol
+let foo: Self
+let foo: (Foo, Bar)
+let foo: (Foo, b: @a inout Bar)
+let foo: @a inout Foo
+let foo: package.Foo
+class Foo: class, Base {}
+class Bar: BaseClass, BaseProtocol {}

@@ -1,5 +1,5 @@
 /*
-   Copyright 2017 Ryuichi Saito, LLC and the Yanagiba project contributors
+   Copyright 2015-2017 Ryuichi Saito, LLC and the Yanagiba project contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -14,20 +14,18 @@
    limitations under the License.
 */
 
-import XCTest
+import Foundation
 
-@testable import AST
-@testable import Format
-
-class GeneratorTests : XCTestCase {
-  private let _generator = Generator()
-
-  func testEmptyTopLevelDeclaration() {
-    let formatted = _generator.generate(TopLevelDeclaration())
-    XCTAssertEqual(formatted, "\n")
+extension String {
+  init(indentation: Int) {
+    self.init(repeating: "  ", count: indentation)
   }
 
-  static var allTests = [
-    ("testEmptyTopLevelDeclaration", testEmptyTopLevelDeclaration),
-  ]
+  static let indent = String(indentation: 1)
+
+  var indent: String {
+    return components(separatedBy: .newlines)
+      .map { String.indent + $0 }
+      .joined(separator: "\n")
+  }
 }
