@@ -11,7 +11,7 @@
 ![Platforms](https://img.shields.io/badge/platform-%20Linux%20|%20macOS%20-red.svg)
 ![License](https://img.shields.io/github/license/yanagiba/swift-transform.svg)
 
-Swift Transform (`swift-transform`) is a tool that formats Swift code.
+Swift Transform (`swift-transform`) enables source-to-source transformation that takes Swift code as input and produces the equivalent source code in other programming languages.
 
 Swift Transform relies on [Swift Abstract Syntax Tree (`swift-ast`)](http://yanagiba.org/swift-ast)
 of the source code for better accuracy and efficiency.
