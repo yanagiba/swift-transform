@@ -1,5 +1,5 @@
 /*
-   Copyright 2015-2017 Ryuichi Saito, LLC and the Yanagiba project contributors
+   Copyright 2015-2017 Ryuichi Laboratories and the Yanagiba project contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -15,17 +15,20 @@
 */
 
 import Foundation
+import XCTest
 
-extension String {
-  init(indentation: Int) {
-    self.init(repeating: "  ", count: indentation)
+@testable import Source
+@testable import Transform
+
+class DriverTests : XCTestCase {
+  func testTransform() {
+    let testDriver = Driver()
+    testDriver.updateOutputHandle(.nullDevice)
+    let result = testDriver.transform(sourceFile: SourceFile(path: "test/testDriver", content: "import foo"))
+    XCTAssertEqual(result, 0)
   }
 
-  static let indent = String(indentation: 1)
-
-  var indent: String {
-    return components(separatedBy: .newlines)
-      .map { String.indent + $0 }
-      .joined(separator: "\n")
-  }
+  static var allTests = [
+    ("testTransform", testTransform),
+  ]
 }

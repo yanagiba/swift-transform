@@ -1,5 +1,5 @@
 /*
-   Copyright 2017 Ryuichi Saito, LLC and the Yanagiba project contributors
+   Copyright 2017 Ryuichi Laboratories and the Yanagiba project contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -14,13 +14,24 @@
    limitations under the License.
 */
 
-import XCTest
+import Foundation
 
-#if !os(macOS)
-public func allTests() -> [XCTestCaseEntry] {
-  return [
-    testCase(DriverTests.allTests),
-    testCase(GeneratorTests.allTests),
-  ]
+import Source
+import Transform
+
+var filePaths = CommandLine.arguments
+filePaths.remove(at: 0)
+
+var sourceFiles = [SourceFile]()
+for filePath in filePaths {
+  guard let sourceFile = try? SourceReader.read(at: filePath) else {
+    print("Can't read file \(filePath)")
+    exit(-1)
+  }
+  sourceFiles.append(sourceFile)
 }
-#endif
+
+let driver = Driver()
+for sourceFile in sourceFiles {
+  driver.transform(sourceFile: sourceFile)
+}

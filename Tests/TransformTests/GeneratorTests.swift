@@ -1,5 +1,5 @@
 /*
-   Copyright 2017 Ryuichi Saito, LLC and the Yanagiba project contributors
+   Copyright 2017 Ryuichi Laboratories and the Yanagiba project contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -14,14 +14,20 @@
    limitations under the License.
 */
 
-import AST
+import XCTest
 
-extension Generator {
-  open func generate(_ node: ThrowsKind) -> String {
-    switch node {
-    case .nothrowing: return ""
-    case .throwing: return "throws"
-    case .rethrowing: return "rethrows"
-    }
+@testable import AST
+@testable import Transform
+
+class GeneratorTests : XCTestCase {
+  private let _generator = Generator()
+
+  func testEmptyTopLevelDeclaration() {
+    let formatted = _generator.generate(TopLevelDeclaration())
+    XCTAssertEqual(formatted, "\n")
   }
+
+  static var allTests = [
+    ("testEmptyTopLevelDeclaration", testEmptyTopLevelDeclaration),
+  ]
 }

@@ -3,4 +3,4 @@
 set -e
 
 make
-.build/debug/swift-format $@
+.build/debug/swift-transform $@

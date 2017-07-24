@@ -1,5 +1,5 @@
 /*
-   Copyright 2015-2017 Ryuichi Saito, LLC and the Yanagiba project contributors
+   Copyright 2017 Ryuichi Laboratories and the Yanagiba project contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -14,21 +14,8 @@
    limitations under the License.
 */
 
-import Foundation
-import XCTest
+import AST
 
-@testable import Source
-@testable import Format
-
-class DriverTests : XCTestCase {
-  func testFormat() {
-    let testDriver = Driver()
-    testDriver.updateOutputHandle(.nullDevice)
-    let result = testDriver.format(sourceFile: SourceFile(path: "test/testDriver", content: "import foo"))
-    XCTAssertEqual(result, 0)
-  }
-
-  static var allTests = [
-    ("testFormat", testFormat),
-  ]
+open class Generator {
+    public init() {}
 }
