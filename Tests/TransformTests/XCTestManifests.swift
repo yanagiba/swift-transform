@@ -1,5 +1,5 @@
 /*
-   Copyright 2017 Ryuichi Saito, LLC and the Yanagiba project contributors
+   Copyright 2017 Ryuichi Laboratories and the Yanagiba project contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -16,18 +16,11 @@
 
 import XCTest
 
-@testable import AST
-@testable import Format
-
-class GeneratorTests : XCTestCase {
-  private let _generator = Generator()
-
-  func testEmptyTopLevelDeclaration() {
-    let formatted = _generator.generate(TopLevelDeclaration())
-    XCTAssertEqual(formatted, "\n")
-  }
-
-  static var allTests = [
-    ("testEmptyTopLevelDeclaration", testEmptyTopLevelDeclaration),
+#if !os(macOS)
+public func allTests() -> [XCTestCaseEntry] {
+  return [
+    testCase(DriverTests.allTests),
+    testCase(GeneratorTests.allTests),
   ]
 }
+#endif

@@ -1,5 +1,5 @@
 /*
-   Copyright 2017 Ryuichi Saito, LLC and the Yanagiba project contributors
+   Copyright 2015-2017 Ryuichi Laboratories and the Yanagiba project contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -16,22 +16,16 @@
 
 import Foundation
 
-import Source
-import Format
-
-var filePaths = CommandLine.arguments
-filePaths.remove(at: 0)
-
-var sourceFiles = [SourceFile]()
-for filePath in filePaths {
-  guard let sourceFile = try? SourceReader.read(at: filePath) else {
-    print("Can't read file \(filePath)")
-    exit(-1)
+extension String {
+  init(indentation: Int) {
+    self.init(repeating: "  ", count: indentation)
   }
-  sourceFiles.append(sourceFile)
-}
 
-let driver = Driver()
-for sourceFile in sourceFiles {
-  driver.format(sourceFile: sourceFile)
+  static let indent = String(indentation: 1)
+
+  var indent: String {
+    return components(separatedBy: .newlines)
+      .map { String.indent + $0 }
+      .joined(separator: "\n")
+  }
 }

@@ -1,5 +1,5 @@
 /*
-   Copyright 2017 Ryuichi Saito, LLC and the Yanagiba project contributors
+   Copyright 2017 Ryuichi Laboratories and the Yanagiba project contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ open class Driver {
     _outputHandle = outputHandle
   }
 
-  @discardableResult public func format(sourceFile: SourceFile) -> Int32 {
+  @discardableResult public func transform(sourceFile: SourceFile) -> Int32 {
     let parser = Parser(source: sourceFile)
     guard let topLevelDecl = try? parser.parse() else {
       print("Failed in parsing file \(sourceFile.identifier)")
@@ -44,8 +44,8 @@ open class Driver {
       return -1
     }
 
-    let formatted = _generator.generate(topLevelDecl)
-    guard let strData = "\(formatted)\n".data(using: .utf8) else {
+    let transformed = _generator.generate(topLevelDecl)
+    guard let strData = "\(transformed)\n".data(using: .utf8) else {
       return -2
     }
 

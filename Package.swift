@@ -1,7 +1,7 @@
 // swift-tools-version:4.0
 
 /*
-   Copyright 2017 Ryuichi Saito, LLC and the Yanagiba project contributors
+   Copyright 2017 Ryuichi Laboratories and the Yanagiba project contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -19,18 +19,18 @@
 import PackageDescription
 
 let package = Package(
-  name: "swift-format",
+  name: "swift-transform",
   products: [
     .executable(
-      name: "swift-format",
+      name: "swift-transform",
       targets: [
-        "swift-format",
+        "swift-transform",
       ]
     ),
     .library(
-      name: "SwiftFormat",
+      name: "SwiftTransform",
       targets: [
-        "Format",
+        "Transform",
       ]
     ),
   ],
@@ -42,15 +42,15 @@ let package = Package(
   ],
   targets: [
     .target(
-      name: "Format",
+      name: "Transform",
       dependencies: [
         "SwiftAST",
       ]
     ),
     .target(
-      name: "swift-format",
+      name: "swift-transform",
       dependencies: [
-        "Format",
+        "Transform",
       ]
     ),
 
@@ -60,15 +60,15 @@ let package = Package(
       name: "CrithagraTests"
     ),
     .testTarget(
-      name: "FormatTests",
+      name: "TransformTests",
       dependencies: [
-        "Format",
+        "Transform",
       ]
     ),
     .testTarget(
       name: "GeneratorTests",
       dependencies: [
-        "Format",
+        "Transform",
       ]
     ),
   ],

@@ -2,5 +2,5 @@ comment:
   layout: header, changes, diff
 coverage:
   ignore:
-  - Sources/swift-format
+  - Sources/swift-transform
   - Tests
