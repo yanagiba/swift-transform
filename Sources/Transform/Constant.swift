@@ -1,5 +1,5 @@
 /*
-   Copyright 2015-2017 Ryuichi Laboratories and the Yanagiba project contributors
+   Copyright 2017 Ryuichi Laboratories and the Yanagiba project contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -14,23 +14,6 @@
    limitations under the License.
 */
 
-import Foundation
-import XCTest
-
-@testable import Source
-@testable import Transform
-
-class DriverTests : XCTestCase {
-  func testTransform() {
-    let testDriver = Driver()
-    let result = testDriver.transform(
-      sourceFile: SourceFile(path: "test/testDriver", content: "import foo"),
-      outputHandle: .nullDevice
-    )
-    XCTAssertEqual(result, 0)
-  }
-
-  static var allTests = [
-    ("testTransform", testTransform),
-  ]
-}
+public let SWIFT_TRANSFORM = "swift-transform"
+public let SWIFT_TRANSFORM_VERSION = "0.1.0"
+public let SWIFT_AST_VERSION = "0.3.5"
