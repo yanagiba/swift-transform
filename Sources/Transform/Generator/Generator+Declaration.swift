@@ -246,11 +246,11 @@ extension Generator {
     let attrsText = declaration.attributes.isEmpty ? "" : "\(generate(declaration.attributes)) "
     let modifiersText = declaration.modifiers.isEmpty ? "" : "\(generate(declaration.modifiers)) "
     let headText = "\(attrsText)\(modifiersText)func"
-    let genericParameterClauseText = declaration.genericParameterClause.map(generate) ?? ""
+    let genericParamText = declaration.genericParameterClause.map(generate) ?? ""
     let signatureText = generate(declaration.signature)
-    let genericWhereClauseText = declaration.genericWhereClause.map({ " \(generate($0))" }) ?? ""
+    let genericWhereText = declaration.genericWhereClause.map({ " \(generate($0))" }) ?? ""
     let bodyText = declaration.body.map({ " \(generate($0))" }) ?? ""
-    return "\(headText) \(declaration.name)\(genericParameterClauseText)\(signatureText)\(genericWhereClauseText)\(bodyText)"
+    return "\(headText) \(declaration.name)\(genericParamText)\(signatureText)\(genericWhereText)\(bodyText)"
   }
 
   open func generate(_ parameter: FunctionSignature.Parameter) -> String {
@@ -289,12 +289,12 @@ extension Generator {
     let attrsText = declaration.attributes.isEmpty ? "" : "\(generate(declaration.attributes)) "
     let modifiersText = declaration.modifiers.isEmpty ? "" : "\(generate(declaration.modifiers)) "
     let headText = "\(attrsText)\(modifiersText)init\(generate(declaration.kind))"
-    let genericParameterClauseText = declaration.genericParameterClause.map(generate) ?? ""
+    let genericParamText = declaration.genericParameterClause.map(generate) ?? ""
     let parameterText = "(\(declaration.parameterList.map(generate).joined(separator: ", ")))"
     let throwsKindText = generate(declaration.throwsKind).isEmpty ? "" : " \(generate(declaration.throwsKind))"
-    let genericWhereClauseText = declaration.genericWhereClause.map({ " \(generate($0))" }) ?? ""
+    let genericWhereText = declaration.genericWhereClause.map({ " \(generate($0))" }) ?? ""
     let bodyText = generate(declaration.body)
-    return "\(headText)\(genericParameterClauseText)\(parameterText)\(throwsKindText)\(genericWhereClauseText) \(bodyText)"
+    return "\(headText)\(genericParamText)\(parameterText)\(throwsKindText)\(genericWhereText) \(bodyText)"
   }
 
   open func generate(_ declaration: InitializerDeclaration.InitKind) -> String {
@@ -420,8 +420,8 @@ extension Generator {
     let modifierText = member.accessLevelModifier.map({ "\(generate($0)) " }) ?? ""
     let typeText = member.typeInheritance.map(generate) ?? ""
     let assignmentText = member.assignmentType.map({ " = \(generate($0))" }) ?? ""
-    let genericWhereClauseText = member.genericWhere.map({ " \(generate($0))" }) ?? ""
-    return "\(attrsText)\(modifierText)associatedtype \(member.name)\(typeText)\(assignmentText)\(genericWhereClauseText)"
+    let genericWhereText = member.genericWhere.map({ " \(generate($0))" }) ?? ""
+    return "\(attrsText)\(modifierText)associatedtype \(member.name)\(typeText)\(assignmentText)\(genericWhereText)"
   }
 
   open func generate(_ declaration: StructDeclaration) -> String {
@@ -476,7 +476,8 @@ extension Generator {
     let attrsText = declaration.attributes.isEmpty ? "" : "\(generate(declaration.attributes)) "
     let modifierText = declaration.accessLevelModifier.map({ "\(generate($0)) " }) ?? ""
     let genericText = declaration.generic.map(generate) ?? ""
-    return "\(attrsText)\(modifierText)typealias \(declaration.name)\(genericText) = \(generate(declaration.assignment))"
+    let assignmentText = generate(declaration.assignment)
+    return "\(attrsText)\(modifierText)typealias \(declaration.name)\(genericText) = \(assignmentText)"
   }
 
   open func generate(_ declaration: VariableDeclaration) -> String {

@@ -334,7 +334,10 @@ extension Generator {
   }
 
   open func generate(_ expression: TernaryConditionalOperatorExpression) -> String {
-    return "\(generate(expression.conditionExpression)) ? \(generate(expression.trueExpression)) : \(generate(expression.falseExpression))"
+    let conditionExpr = generate(expression.conditionExpression)
+    let trueExpr = generate(expression.trueExpression)
+    let falseExpr = generate(expression.falseExpression)
+    return "\(conditionExpr) ? \(trueExpr) : \(falseExpr)"
   }
 
   open func generate(_ expression: TryOperatorExpression) -> String {
