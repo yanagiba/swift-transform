@@ -21,22 +21,19 @@ import Parser
 
 open class Driver {
   private var _generator: Generator
-  private var _outputHandle: FileHandle
 
-  public init(generator: Generator = Generator(), outputHandle: FileHandle = .standardOutput) {
+  public init(generator: Generator = Generator()) {
     _generator = generator
-    _outputHandle = outputHandle
   }
 
   func udpateGenerator(_ generator: Generator) {
     _generator = generator
   }
 
-  func updateOutputHandle(_ outputHandle: FileHandle) {
-    _outputHandle = outputHandle
-  }
-
-  @discardableResult public func transform(sourceFile: SourceFile) -> Int32 {
+  @discardableResult public func transform(
+    sourceFile: SourceFile,
+    outputHandle: FileHandle = .standardOutput
+  ) -> Int32 {
     let parser = Parser(source: sourceFile)
     guard let topLevelDecl = try? parser.parse() else {
       print("Failed in parsing file \(sourceFile.identifier)")
@@ -49,7 +46,7 @@ open class Driver {
       return -2
     }
 
-    _outputHandle.write(strData)
+    outputHandle.write(strData)
 
     return 0
   }

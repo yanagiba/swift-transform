@@ -17,5 +17,9 @@
 import AST
 
 open class Generator {
-    public init() {}
+  let _formats: [String: Any]?
+
+  public init(formats: [String: Any]? = nil) {
+    _formats = formats
+  }
 }

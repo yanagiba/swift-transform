@@ -39,6 +39,10 @@ let package = Package(
       url: "https://github.com/yanagiba/swift-ast",
       .revision("283e39365d1db629b932ca314afe19852318e636")
     ),
+    .package(
+      url: "https://github.com/yanagiba/bocho",
+      .revision("25b9439a94ad26c169cf4b5f05826e811b3ba009")
+    ),
   ],
   targets: [
     .target(
@@ -51,6 +55,7 @@ let package = Package(
       name: "swift-transform",
       dependencies: [
         "Transform",
+        "Bocho",
       ]
     ),
 
