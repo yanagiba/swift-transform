@@ -18,3 +18,4 @@ self
 self.foo
 self.init
 self[foo, bar]
+self[foo:1,bar:-1]
