@@ -17,3 +17,4 @@
 super.foo
 super.init
 super[foo, bar]
+super[foo:1,bar:-1]

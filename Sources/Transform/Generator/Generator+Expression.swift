@@ -308,26 +308,26 @@ extension Generator {
       return "self"
     case .method(let name):
       return "self.\(name)"
-    case .subscript(let exprs):
-      let exprsText = exprs.map(generate).joined(separator: ", ")
-      return "self[\(exprsText)]"
+    case .subscript(let args):
+      let argsText = args.map(generate).joined(separator: ", ")
+      return "self[\(argsText)]"
     case .initializer:
       return "self.init"
     }
   }
 
   open func generate(_ expression: SubscriptExpression) -> String {
-    let exprsText = expression.expressionList.map(generate).joined(separator: ", ")
-    return "\(generate(expression.postfixExpression))[\(exprsText)]"
+    let argsText = expression.arguments.map(generate).joined(separator: ", ")
+    return "\(generate(expression.postfixExpression))[\(argsText)]"
   }
 
   open func generate(_ expression: SuperclassExpression) -> String {
     switch expression.kind {
     case .method(let name):
       return "super.\(name)"
-    case .subscript(let exprs):
-      let exprsText = exprs.map(generate).joined(separator: ", ")
-      return "super[\(exprsText)]"
+    case .subscript(let args):
+      let argsText = args.map(generate).joined(separator: ", ")
+      return "super[\(argsText)]"
     case .initializer:
       return "super.init"
     }
@@ -405,5 +405,13 @@ extension Generator {
 
   open func generate(_ expression: DictionaryEntry) -> String {
     return "\(generate(expression.key)): \(generate(expression.value))"
+  }
+
+  open func generate(_ arg: SubscriptArgument) -> String {
+    var identifierText = ""
+    if let id = arg.identifier {
+      identifierText = "\(id): "
+    }
+    return "\(identifierText)\(generate(arg.expression))"
   }
 }
