@@ -17,7 +17,7 @@
 import AST
 
 extension Tokenizer {
-    open func generate(_ statement: Statement) -> String {
+    open func generate(_ statement: Statement, node: ASTNode) -> String {
         switch statement {
         case let decl as Declaration:
             return generate(decl)
@@ -96,13 +96,13 @@ extension Tokenizer {
     
     open func generate(_ statement: DoStatement) -> String {
         return (["do \(generate(statement.codeBlock))"] +
-            statement.catchClauses.map(generate)).joined(separator: " ")
+            statement.catchClauses.map { generate($0, node: statement) }).joined(separator: " ")
     }
     
-    open func generate(_ statement: DoStatement.CatchClause) -> String {
+    open func generate(_ statement: DoStatement.CatchClause, node: ASTNode) -> String {
         var patternText = ""
         if let pattern = statement.pattern {
-            patternText = " \(generate(pattern))"
+            patternText = " \(generate(pattern, node: node))"
         }
         var whereText = ""
         if let whereExpr = statement.whereExpression {
@@ -120,7 +120,7 @@ extension Tokenizer {
         if statement.item.isCaseMatching {
             descr += " case"
         }
-        descr += " \(generate(statement.item.matchingPattern)) in \(generate(statement.collection)) "
+        descr += " \(generate(statement.item.matchingPattern, node: statement)) in \(generate(statement.collection)) "
         if let whereClause = statement.item.whereClause {
             descr += "where \(generate(whereClause)) "
         }
@@ -150,7 +150,7 @@ extension Tokenizer {
     }
     
     open func generate(_ statement: LabeledStatement) -> String {
-        return "\(statement.labelName): \(generate(statement.statement))"
+        return "\(statement.labelName): \(generate(statement.statement, node: statement))"
     }
     
     open func generate(_ statement: RepeatWhileStatement) -> String {
@@ -167,27 +167,27 @@ extension Tokenizer {
     open func generate(_ statement: SwitchStatement) -> String {
         var casesDescr = "{}"
         if !statement.cases.isEmpty {
-            let casesText = statement.cases.map(generate).joined(separator: "\n")
+            let casesText = statement.cases.map { generate($0, node: statement) }.joined(separator: "\n")
             casesDescr = "{\n\(casesText)\n}"
         }
         return "switch \(generate(statement.expression)) \(casesDescr)"
     }
     
-    open func generate(_ statement: SwitchStatement.Case.Item) -> String {
+    open func generate(_ statement: SwitchStatement.Case.Item, node: ASTNode) -> String {
         var whereText = ""
         if let whereExpr = statement.whereExpression {
             whereText = " where \(generate(whereExpr))"
         }
-        return "\(generate(statement.pattern))\(whereText)"
+        return "\(generate(statement.pattern, node: node))\(whereText)"
     }
     
-    open func generate(_ statement: SwitchStatement.Case) -> String {
+    open func generate(_ statement: SwitchStatement.Case, node: ASTNode) -> String {
         switch statement {
         case let .case(itemList, stmts):
-            let itemListText = itemList.map(generate).joined(separator: ", ")
-            return "case \(itemListText):\n\(generate(stmts).indent)"
+            let itemListText = itemList.map { generate($0, node: node) }.joined(separator: ", ")
+            return "case \(itemListText):\n\(generate(stmts, node: node).indent)"
         case .default(let stmts):
-            return "default:\n\(generate(stmts).indent)"
+            return "default:\n\(generate(stmts, node: node).indent)"
         }
     }
     
@@ -201,8 +201,8 @@ extension Tokenizer {
     
     // MARK: Utils
     
-    open func generate(_ statements: [Statement]) -> String {
-        return statements.map(generate).joined(separator: "\n")
+    open func generate(_ statements: [Statement], node: ASTNode) -> String {
+        return statements.map { generate($0, node: node) }.joined(separator: "\n")
     }
     
     open func generate(_ conditions: ConditionList) -> String {

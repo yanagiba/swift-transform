@@ -17,89 +17,89 @@
 import AST
 
 extension Tokenizer {
-    open func generate(_ pattern: Pattern) -> String {
+    open func generate(_ pattern: Pattern, node: ASTNode) -> String {
         switch pattern {
         case let pattern as EnumCasePattern:
-            return generate(pattern)
+            return generate(pattern, node: node)
         case let pattern as ExpressionPattern:
             return generate(pattern)
         case let pattern as IdentifierPattern:
-            return generate(pattern)
+            return generate(pattern, node: node)
         case let pattern as OptionalPattern:
-            return generate(pattern)
+            return generate(pattern, node: node)
         case let pattern as TuplePattern:
-            return generate(pattern)
+            return generate(pattern, node: node)
         case let pattern as TypeCastingPattern:
-            return generate(pattern)
+            return generate(pattern, node: node)
         case let pattern as ValueBindingPattern:
-            return generate(pattern)
+            return generate(pattern, node: node)
         case let pattern as WildcardPattern:
-            return generate(pattern)
+            return generate(pattern, node: node)
         default:
             return pattern.textDescription
         }
     }
     
-    open func generate(_ pattern: EnumCasePattern) -> String {
-        return "\(pattern.typeIdentifier.map(generate) ?? "").\(pattern.name)\(pattern.tuplePattern.map(generate) ?? "")"
+    open func generate(_ pattern: EnumCasePattern, node: ASTNode) -> String {
+        return "\(pattern.typeIdentifier.map { generate($0, node: node) } ?? "").\(pattern.name)\(pattern.tuplePattern.map { generate($0, node: node) } ?? "")"
     }
     
     open func generate(_ pattern: ExpressionPattern) -> String {
         return generate(pattern.expression)
     }
     
-    open func generate(_ pattern: IdentifierPattern) -> String {
-        return "\(pattern.identifier)\(pattern.typeAnnotation.map(generate) ?? "")"
+    open func generate(_ pattern: IdentifierPattern, node: ASTNode) -> String {
+        return "\(pattern.identifier)\(pattern.typeAnnotation.map { generate($0, node: node) } ?? "")"
     }
     
-    open func generate(_ pattern: OptionalPattern) -> String {
+    open func generate(_ pattern: OptionalPattern, node: ASTNode) -> String {
         switch pattern.kind {
         case .identifier(let idPttrn):
-            return "\(generate(idPttrn))?"
+            return "\(generate(idPttrn, node: node))?"
         case .wildcard:
             return "_?"
         case .enumCase(let enumCasePttrn):
-            return "\(generate(enumCasePttrn))?"
+            return "\(generate(enumCasePttrn, node: node))?"
         case .tuple(let tuplePttrn):
-            return "\(generate(tuplePttrn))?"
+            return "\(generate(tuplePttrn, node: node))?"
         }
     }
     
-    open func generate(_ pattern: TuplePattern) -> String {
-        let elemStr = pattern.elementList.map(generate).joined(separator: ", ")
-        let annotationStr = pattern.typeAnnotation.map(generate) ?? ""
+    open func generate(_ pattern: TuplePattern, node: ASTNode) -> String {
+        let elemStr = pattern.elementList.map { generate($0, node: node) }.joined(separator: ", ")
+        let annotationStr = pattern.typeAnnotation.map { generate($0, node: node) } ?? ""
         return "(\(elemStr))\(annotationStr)"
     }
     
-    open func generate(_ pattern: TuplePattern.Element) -> String {
+    open func generate(_ pattern: TuplePattern.Element, node: ASTNode) -> String {
         switch pattern {
         case .pattern(let pattern):
-            return generate(pattern)
+            return generate(pattern, node: node)
         case let .namedPattern(name, pattern):
-            return "\(name): \(generate(pattern))"
+            return "\(name): \(generate(pattern, node: node))"
         }
     }
     
-    open func generate(_ pattern: TypeCastingPattern) -> String {
+    open func generate(_ pattern: TypeCastingPattern, node: ASTNode) -> String {
         switch pattern.kind {
         case .is(let type):
-            return "is \(generate(type))"
+            return "is \(generate(type, node: node))"
         case let .as(pattern, type):
-            return "\(generate(pattern)) as \(generate(type))"
+            return "\(generate(pattern, node: node)) as \(generate(type, node: node))"
         }
     }
     
-    open func generate(_ pattern: ValueBindingPattern) -> String {
+    open func generate(_ pattern: ValueBindingPattern, node: ASTNode) -> String {
         switch pattern.kind {
         case .var(let pattern):
-            return "var \(generate(pattern))"
+            return "var \(generate(pattern, node: node))"
         case .let(let pattern):
-            return "let \(generate(pattern))"
+            return "let \(generate(pattern, node: node))"
         }
     }
     
-    open func generate(_ pattern: WildcardPattern) -> String {
-        return "_\(pattern.typeAnnotation.map(generate) ?? "")"
+    open func generate(_ pattern: WildcardPattern, node: ASTNode) -> String {
+        return "_\(pattern.typeAnnotation.map { generate($0, node: node) } ?? "")"
     }
 }
 

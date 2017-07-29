@@ -55,14 +55,14 @@ extension Tokenizer {
     }
     
     open func generate(_ topLevelDeclaration: TopLevelDeclaration) -> String {
-        return topLevelDeclaration.statements.map(generate).joined(separator: "\n") + "\n"
+        return topLevelDeclaration.statements.map { generate($0, node: topLevelDeclaration) }.joined(separator: "\n") + "\n"
     }
     
     open func generate(_ codeBlock: CodeBlock) -> String {
         if codeBlock.statements.isEmpty {
             return "{}"
         }
-        return "{\n\(codeBlock.statements.map(generate).joined(separator: "\n").indent)\n}"
+        return "{\n\(codeBlock.statements.map { generate($0, node: codeBlock) }.joined(separator: "\n").indent)\n}"
     }
     
     open func generate(_ block: GetterSetterBlock.GetterClause) -> String {
@@ -118,16 +118,16 @@ extension Tokenizer {
         return "\(attrsText)\(modifierText)set"
     }
     
-    open func generate(_ patternInitializer: PatternInitializer) -> String {
-        let pttrnText = generate(patternInitializer.pattern)
+    open func generate(_ patternInitializer: PatternInitializer, node: ASTNode) -> String {
+        let pttrnText = generate(patternInitializer.pattern, node: node)
         guard let initExpr = patternInitializer.initializerExpression else {
             return pttrnText
         }
         return "\(pttrnText) = \(generate(initExpr))"
     }
     
-    open func generate(_ initializers: [PatternInitializer]) -> String {
-        return initializers.map(generate).joined(separator: ", ")
+    open func generate(_ initializers: [PatternInitializer], node: ASTNode) -> String {
+        return initializers.map { generate($0, node: node) }.joined(separator: ", ")
     }
     
     open func generate(_ member: ClassDeclaration.Member) -> String {
@@ -144,9 +144,9 @@ extension Tokenizer {
         let modifierText = declaration.accessLevelModifier.map({ "\(generate($0)) " }) ?? ""
         let finalText = declaration.isFinal ? "final " : ""
         let headText = "\(attrsText)\(modifierText)\(finalText)class \(declaration.name)"
-        let genericParameterClauseText = declaration.genericParameterClause.map(generate) ?? ""
-        let typeText = declaration.typeInheritanceClause.map(generate) ?? ""
-        let whereText = declaration.genericWhereClause.map({ " \(generate($0))" }) ?? ""
+        let genericParameterClauseText = declaration.genericParameterClause.map { generate($0, node: declaration) } ?? ""
+        let typeText = declaration.typeInheritanceClause.map { generate($0, node: declaration) } ?? ""
+        let whereText = declaration.genericWhereClause.map({ " \(generate($0, node: declaration))" }) ?? ""
         let neckText = "\(genericParameterClauseText)\(typeText)\(whereText)"
         let membersText = declaration.members.map(generate).joined(separator: "\n")
         let memberText = declaration.members.isEmpty ? "" : "\n\(membersText.indent)\n"
@@ -156,7 +156,7 @@ extension Tokenizer {
     open func generate(_ constant: ConstantDeclaration) -> String {
         let attrsText = constant.attributes.isEmpty ? "" : "\(generate(constant.attributes)) "
         let modifiersText = constant.modifiers.isEmpty ? "" : "\(generate(constant.modifiers)) "
-        return "\(attrsText)\(modifiersText)let \(generate(constant.initializerList))"
+        return "\(attrsText)\(modifiersText)let \(generate(constant.initializerList, node: constant))"
     }
     
     open func generate(_ declaration: DeinitializerDeclaration) -> String {
@@ -164,12 +164,12 @@ extension Tokenizer {
         return "\(attrsText)deinit \(generate(declaration.body))"
     }
     
-    open func generate(_ member: EnumDeclaration.Member) -> String {
+    open func generate(_ member: EnumDeclaration.Member, node: ASTNode) -> String {
         switch member {
         case .declaration(let decl):
             return generate(decl)
         case .union(let enumCase):
-            return generate(enumCase)
+            return generate(enumCase, node: node)
         case .rawValue(let enumCase):
             return generate(enumCase)
         case .compilerControl(let stmt):
@@ -177,10 +177,10 @@ extension Tokenizer {
         }
     }
     
-    open func generate(_ union: EnumDeclaration.UnionStyleEnumCase) -> String {
+    open func generate(_ union: EnumDeclaration.UnionStyleEnumCase, node: ASTNode) -> String {
         let attrsText = union.attributes.isEmpty ? "" : "\(generate(union.attributes)) "
         let indirectText = union.isIndirect ? "indirect " : ""
-        let casesText = union.cases.map({ "\($0.name)\($0.tuple.map(generate) ?? "")" }).joined(separator: ", ")
+        let casesText = union.cases.map({ "\($0.name)\($0.tuple.map { generate($0, node: node) } ?? "")" }).joined(separator: ", ")
         return "\(attrsText)\(indirectText)case \(casesText)"
     }
     
@@ -212,11 +212,11 @@ extension Tokenizer {
         let modifierText = declaration.accessLevelModifier.map({ "\(generate($0)) " }) ?? ""
         let indirectText = declaration.isIndirect ? "indirect " : ""
         let headText = "\(attrsText)\(modifierText)\(indirectText)enum \(declaration.name)"
-        let genericParameterClauseText = declaration.genericParameterClause.map(generate) ?? ""
-        let typeText = declaration.typeInheritanceClause.map(generate) ?? ""
-        let whereText = declaration.genericWhereClause.map({ " \(generate($0))" }) ?? ""
+        let genericParameterClauseText = declaration.genericParameterClause.map { generate($0, node: declaration) } ?? ""
+        let typeText = declaration.typeInheritanceClause.map { generate($0, node: declaration) } ?? ""
+        let whereText = declaration.genericWhereClause.map({ " \(generate($0, node: declaration))" }) ?? ""
         let neckText = "\(genericParameterClauseText)\(typeText)\(whereText)"
-        let membersText = declaration.members.map(generate).joined(separator: "\n")
+        let membersText = declaration.members.map { generate($0, node: declaration) }.joined(separator: "\n")
         let memberText = declaration.members.isEmpty ? "" : "\n\(membersText.indent)\n"
         return "\(headText)\(neckText) {\(memberText)}"
     }
@@ -233,9 +233,9 @@ extension Tokenizer {
     open func generate(_ declaration: ExtensionDeclaration) -> String {
         let attrsText = declaration.attributes.isEmpty ? "" : "\(generate(declaration.attributes)) "
         let modifierText = declaration.accessLevelModifier.map({ "\(generate($0)) " }) ?? ""
-        let headText = "\(attrsText)\(modifierText)extension \(generate(declaration.type))"
-        let typeInheritanceText = declaration.typeInheritanceClause.map(generate) ?? ""
-        let whereText = declaration.genericWhereClause.map({ " \(generate($0))" }) ?? ""
+        let headText = "\(attrsText)\(modifierText)extension \(generate(declaration.type, node: declaration))"
+        let typeInheritanceText = declaration.typeInheritanceClause.map { generate($0, node: declaration) } ?? ""
+        let whereText = declaration.genericWhereClause.map({ " \(generate($0, node: declaration))" }) ?? ""
         let neckText = "\(typeInheritanceText)\(whereText)"
         let membersText = declaration.members.map(generate).joined(separator: "\n")
         let memberText = declaration.members.isEmpty ? "" : "\n\(membersText.indent)\n"
@@ -246,32 +246,32 @@ extension Tokenizer {
         let attrsText = declaration.attributes.isEmpty ? "" : "\(generate(declaration.attributes)) "
         let modifiersText = declaration.modifiers.isEmpty ? "" : "\(generate(declaration.modifiers)) "
         let headText = "\(attrsText)\(modifiersText)func"
-        let genericParamText = declaration.genericParameterClause.map(generate) ?? ""
+        let genericParamText = declaration.genericParameterClause.map { generate($0, node: declaration) } ?? ""
         let signatureText = generate(declaration.signature, node: declaration)
-        let genericWhereText = declaration.genericWhereClause.map({ " \(generate($0))" }) ?? ""
+        let genericWhereText = declaration.genericWhereClause.map({ " \(generate($0, node: declaration))" }) ?? ""
         let bodyText = declaration.body.map({ " \(generate($0))" }) ?? ""
         return "\(headText) \(declaration.name)\(genericParamText)\(signatureText)\(genericWhereText)\(bodyText)"
     }
     
-    open func generate(_ parameter: FunctionSignature.Parameter) -> String {
+    open func generate(_ parameter: FunctionSignature.Parameter, node: ASTNode) -> String {
         let externalNameText = parameter.externalName.map({ [$0] }) ?? []
         let localNameText = parameter.localName.isEmpty ? [] : [parameter.localName]
         let nameText = (externalNameText + localNameText).joined(separator: " ")
-        let typeAnnoText = generate(parameter.typeAnnotation)
+        let typeAnnoText = generate(parameter.typeAnnotation, node: node)
         let defaultText = parameter.defaultArgumentClause.map({ " = \(generate($0))" }) ?? ""
         let varargsText = parameter.isVarargs ? "..." : ""
         return "\(nameText)\(typeAnnoText)\(defaultText)\(varargsText)"
     }
     
     open func generate(_ signature: FunctionSignature, node: ASTNode) -> String {
-        let parameterText = ["(\(signature.parameterList.map(generate).joined(separator: ", ")))"]
+        let parameterText = ["(\(signature.parameterList.map { generate($0, node: node) }.joined(separator: ", ")))"]
         let throwsKindText = [tokenize(signature.throwsKind, node: node).joinedValues()]
-        let resultText = signature.result.map({ [generate($0)] }) ?? []
+        let resultText = signature.result.map({ [generate($0, node: node)] }) ?? []
         return (parameterText + throwsKindText + resultText).joined(separator: " ")
     }
     
-    open func generate(_ result: FunctionResult) -> String {
-        let typeText = generate(result.type)
+    open func generate(_ result: FunctionResult, node: ASTNode) -> String {
+        let typeText = generate(result.type, node: node)
         if result.attributes.isEmpty {
             return "-> \(typeText)"
         }
@@ -289,12 +289,12 @@ extension Tokenizer {
         let attrsText = declaration.attributes.isEmpty ? "" : "\(generate(declaration.attributes)) "
         let modifiersText = declaration.modifiers.isEmpty ? "" : "\(generate(declaration.modifiers)) "
         let headText = "\(attrsText)\(modifiersText)init\(generate(declaration.kind))"
-        let genericParamText = declaration.genericParameterClause.map(generate) ?? ""
-        let parameterText = "(\(declaration.parameterList.map(generate).joined(separator: ", ")))"
+        let genericParamText = declaration.genericParameterClause.map { generate($0, node: declaration) } ?? ""
+        let parameterText = "(\(declaration.parameterList.map { generate($0, node: declaration) }.joined(separator: ", ")))"
         let throwsKindText = tokenize(declaration.throwsKind, node: declaration)
             .prefix(with: declaration.newToken(.space, " "))
             .joinedValues()
-        let genericWhereText = declaration.genericWhereClause.map({ " \(generate($0))" }) ?? ""
+        let genericWhereText = declaration.genericWhereClause.map({ " \(generate($0, node: declaration))" }) ?? ""
         let bodyText = generate(declaration.body)
         return "\(headText)\(genericParamText)\(parameterText)\(throwsKindText)\(genericWhereText) \(bodyText)"
     }
@@ -351,7 +351,7 @@ extension Tokenizer {
         let attrsText = declaration.attributes.isEmpty ? "" : "\(generate(declaration.attributes)) "
         let modifierText = declaration.accessLevelModifier.map({ "\(generate($0)) " }) ?? ""
         let headText = "\(attrsText)\(modifierText)protocol \(declaration.name)"
-        let typeText = declaration.typeInheritanceClause.map(generate) ?? ""
+        let typeText = declaration.typeInheritanceClause.map { generate($0, node: declaration) } ?? ""
         let membersText = declaration.members.map { generate($0, node: declaration) }.joined(separator: "\n")
         let memberText = declaration.members.isEmpty ? "" : "\n\(membersText.indent)\n"
         return "\(headText)\(typeText) {\(memberText)}"
@@ -366,9 +366,9 @@ extension Tokenizer {
         case .initializer(let member):
             return generate(member, node: node)
         case .subscript(let member):
-            return generate(member)
+            return generate(member, node: node)
         case .associatedType(let member):
-            return generate(member)
+            return generate(member, node: node)
         case .compilerControl(let stmt):
             return generate(stmt)
         }
@@ -385,9 +385,9 @@ extension Tokenizer {
         let attrsText = member.attributes.isEmpty ? "" : "\(generate(member.attributes)) "
         let modifiersText = member.modifiers.isEmpty ? "" : "\(generate(member.modifiers)) "
         let headText = "\(attrsText)\(modifiersText)func"
-        let genericParameterClauseText = member.genericParameter.map(generate) ?? ""
+        let genericParameterClauseText = member.genericParameter.map { generate($0, node: node) } ?? ""
         let signatureText = generate(member.signature, node: node)
-        let genericWhereClauseText = member.genericWhere.map({ " \(generate($0))" }) ?? ""
+        let genericWhereClauseText = member.genericWhere.map({ " \(generate($0, node: node))" }) ?? ""
         return "\(headText) \(member.name)\(genericParameterClauseText)\(signatureText)\(genericWhereClauseText)"
     }
     
@@ -395,36 +395,36 @@ extension Tokenizer {
         let attrsText = member.attributes.isEmpty ? "" : "\(generate(member.attributes)) "
         let modifiersText = member.modifiers.isEmpty ? "" : "\(generate(member.modifiers)) "
         let headText = "\(attrsText)\(modifiersText)init\(generate(member.kind))"
-        let genericParameterClauseText = member.genericParameter.map(generate) ?? ""
-        let parameterText = "(\(member.parameterList.map(generate).joined(separator: ", ")))"
+        let genericParameterClauseText = member.genericParameter.map { generate($0, node: node) } ?? ""
+        let parameterText = "(\(member.parameterList.map { generate($0, node: node) }.joined(separator: ", ")))"
         let throwsKindText = tokenize(member.throwsKind, node: node)
             .prefix(with: member.newToken(.space, " ", node))
             .joinedValues()
-        let genericWhereClauseText = member.genericWhere.map({ " \(generate($0))" }) ?? ""
+        let genericWhereClauseText = member.genericWhere.map({ " \(generate($0, node: node))" }) ?? ""
         return "\(headText)\(genericParameterClauseText)\(parameterText)\(throwsKindText)\(genericWhereClauseText)"
     }
     
-    open func generate(_ member: ProtocolDeclaration.SubscriptMember) -> String {
+    open func generate(_ member: ProtocolDeclaration.SubscriptMember, node: ASTNode) -> String {
         let attrsText = member.attributes.isEmpty ? "" : "\(generate(member.attributes)) "
         let modifiersText = member.modifiers.isEmpty ? "" : "\(generate(member.modifiers)) "
-        let genericParamClauseText = member.genericParameter.map(generate) ?? ""
-        let parameterText = "(\(member.parameterList.map(generate).joined(separator: ", ")))"
+        let genericParamClauseText = member.genericParameter.map { generate($0, node: node) } ?? ""
+        let parameterText = "(\(member.parameterList.map { generate($0, node: node) }.joined(separator: ", ")))"
         let headText = "\(attrsText)\(modifiersText)subscript\(genericParamClauseText)\(parameterText)"
         
         let resultAttrsText = member.resultAttributes.isEmpty ? "" : "\(generate(member.resultAttributes)) "
-        let resultText = "-> \(resultAttrsText)\(generate(member.resultType))"
+        let resultText = "-> \(resultAttrsText)\(generate(member.resultType, node: node))"
         
-        let genericWhereClauseText = member.genericWhere.map({ " \(generate($0))" }) ?? ""
+        let genericWhereClauseText = member.genericWhere.map({ " \(generate($0, node: node))" }) ?? ""
         
         return "\(headText) \(resultText)\(genericWhereClauseText) \(generate(member.getterSetterKeywordBlock))"
     }
     
-    open func generate(_ member: ProtocolDeclaration.AssociativityTypeMember) -> String {
+    open func generate(_ member: ProtocolDeclaration.AssociativityTypeMember, node: ASTNode) -> String {
         let attrsText = member.attributes.isEmpty ? "" : "\(generate(member.attributes)) "
         let modifierText = member.accessLevelModifier.map({ "\(generate($0)) " }) ?? ""
-        let typeText = member.typeInheritance.map(generate) ?? ""
-        let assignmentText = member.assignmentType.map({ " = \(generate($0))" }) ?? ""
-        let genericWhereText = member.genericWhere.map({ " \(generate($0))" }) ?? ""
+        let typeText = member.typeInheritance.map { generate($0, node: node) } ?? ""
+        let assignmentText = member.assignmentType.map({ " = \(generate($0, node: node))" }) ?? ""
+        let genericWhereText = member.genericWhere.map({ " \(generate($0, node: node))" }) ?? ""
         return "\(attrsText)\(modifierText)associatedtype \(member.name)\(typeText)\(assignmentText)\(genericWhereText)"
     }
     
@@ -432,9 +432,9 @@ extension Tokenizer {
         let attrsText = declaration.attributes.isEmpty ? "" : "\(generate(declaration.attributes)) "
         let modifierText = declaration.accessLevelModifier.map({ "\(generate($0)) " }) ?? ""
         let headText = "\(attrsText)\(modifierText)struct \(declaration.name)"
-        let genericParameterClauseText = declaration.genericParameterClause.map(generate) ?? ""
-        let typeText = declaration.typeInheritanceClause.map(generate) ?? ""
-        let whereText = declaration.genericWhereClause.map({ " \(generate($0))" }) ?? ""
+        let genericParameterClauseText = declaration.genericParameterClause.map { generate($0, node: declaration) } ?? ""
+        let typeText = declaration.typeInheritanceClause.map { generate($0, node: declaration) } ?? ""
+        let whereText = declaration.genericWhereClause.map({ " \(generate($0, node: declaration))" }) ?? ""
         let neckText = "\(genericParameterClauseText)\(typeText)\(whereText)"
         let membersText = declaration.members.map(generate).joined(separator: "\n")
         let memberText = declaration.members.isEmpty ? "" : "\n\(membersText.indent)\n"
@@ -453,14 +453,14 @@ extension Tokenizer {
     open func generate(_ declaration: SubscriptDeclaration) -> String {
         let attrsText = declaration.attributes.isEmpty ? "" : "\(generate(declaration.attributes)) "
         let modifiersText = declaration.modifiers.isEmpty ? "" : "\(generate(declaration.modifiers)) "
-        let genericParamClauseText = declaration.genericParameterClause.map(generate) ?? ""
-        let parameterText = "(\(declaration.parameterList.map(generate).joined(separator: ", ")))"
+        let genericParamClauseText = declaration.genericParameterClause.map { generate($0, node: declaration) } ?? ""
+        let parameterText = "(\(declaration.parameterList.map { generate($0, node: declaration) }.joined(separator: ", ")))"
         let headText = "\(attrsText)\(modifiersText)subscript\(genericParamClauseText)\(parameterText)"
         
         let resultAttrsText = declaration.resultAttributes.isEmpty ? "" : "\(generate(declaration.resultAttributes)) "
-        let resultText = "-> \(resultAttrsText)\(generate(declaration.resultType))"
+        let resultText = "-> \(resultAttrsText)\(generate(declaration.resultType, node: declaration))"
         
-        let genericWhereClauseText = declaration.genericWhereClause.map({ " \(generate($0))" }) ?? ""
+        let genericWhereClauseText = declaration.genericWhereClause.map({ " \(generate($0, node: declaration))" }) ?? ""
         
         return "\(headText) \(resultText)\(genericWhereClauseText) \(generate(declaration.body))"
     }
@@ -479,21 +479,21 @@ extension Tokenizer {
     open func generate(_ declaration: TypealiasDeclaration) -> String {
         let attrsText = declaration.attributes.isEmpty ? "" : "\(generate(declaration.attributes)) "
         let modifierText = declaration.accessLevelModifier.map({ "\(generate($0)) " }) ?? ""
-        let genericText = declaration.generic.map(generate) ?? ""
-        let assignmentText = generate(declaration.assignment)
+        let genericText = declaration.generic.map { generate($0, node: declaration) } ?? ""
+        let assignmentText = generate(declaration.assignment, node: declaration)
         return "\(attrsText)\(modifierText)typealias \(declaration.name)\(genericText) = \(assignmentText)"
     }
     
     open func generate(_ declaration: VariableDeclaration) -> String {
         let attrsText = declaration.attributes.isEmpty ? "" : "\(generate(declaration.attributes)) "
         let modifiersText = declaration.modifiers.isEmpty ? "" : "\(generate(declaration.modifiers)) "
-        return "\(attrsText)\(modifiersText)var \(generate(declaration.body))"
+        return "\(attrsText)\(modifiersText)var \(generate(declaration.body, node: declaration))"
     }
     
-    open func generate(_ body: VariableDeclaration.Body) -> String {
+    open func generate(_ body: VariableDeclaration.Body, node: ASTNode) -> String {
         switch body {
         case .initializerList(let inits):
-            return inits.map(generate).joined(separator: ", ")
+            return inits.map { generate($0, node: node) }.joined(separator: ", ")
         case let .codeBlock(name, typeAnnotation, codeBlock):
             return "\(name)\(typeAnnotation) \(generate(codeBlock))"
         case let .getterSetterBlock(name, typeAnnotation, block):
@@ -501,7 +501,7 @@ extension Tokenizer {
         case let .getterSetterKeywordBlock(name, typeAnnotation, block):
             return "\(name)\(typeAnnotation) \(generate(block))"
         case let .willSetDidSetBlock(name, typeAnnotation, initExpr, block):
-            let typeAnnoStr = typeAnnotation.map(generate) ?? ""
+            let typeAnnoStr = typeAnnotation.map { generate($0, node: node) } ?? ""
             let initStr = initExpr.map({ " = \(generate($0))" }) ?? ""
             return "\(name)\(typeAnnoStr)\(initStr) \(generate(block))"
         }

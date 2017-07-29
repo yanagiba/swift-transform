@@ -89,7 +89,7 @@ extension Tokenizer {
         var stmtsText = ""
         
         if let signature = expression.signature {
-            signatureText = " \(generate(signature)) in"
+            signatureText = " \(generate(signature, node: expression)) in"
             if expression.statements == nil {
                 stmtsText = " "
             }
@@ -97,9 +97,9 @@ extension Tokenizer {
         
         if let stmts = expression.statements {
             if expression.signature == nil && stmts.count == 1 {
-                stmtsText = " \(generate(stmts)) "
+                stmtsText = " \(generate(stmts, node: expression)) "
             } else {
-                stmtsText = "\n\(generate(stmts).indent)\n"
+                stmtsText = "\n\(generate(stmts, node: expression).indent)\n"
             }
         }
         
@@ -118,10 +118,10 @@ extension Tokenizer {
         return "\(generate(specifier)) \(exprText)"
     }
     
-    open func generate(_ expression: ClosureExpression.Signature.ParameterClause.Parameter) -> String {
+    open func generate(_ expression: ClosureExpression.Signature.ParameterClause.Parameter, node: ASTNode) -> String {
         var paramText = expression.name
         if let typeAnnotation = expression.typeAnnotation {
-            paramText += generate(typeAnnotation)
+            paramText += generate(typeAnnotation, node: node)
             if expression.isVarargs {
                 paramText += "..."
             }
@@ -129,28 +129,28 @@ extension Tokenizer {
         return paramText
     }
     
-    open func generate(_ expression: ClosureExpression.Signature.ParameterClause) -> String {
+    open func generate(_ expression: ClosureExpression.Signature.ParameterClause, node: ASTNode) -> String {
         switch expression {
         case .parameterList(let params):
-            return "(\(params.map(generate).joined(separator: ", ")))"
+            return "(\(params.map { generate($0, node: node) }.joined(separator: ", ")))"
         case .identifierList(let idList):
             return idList.textDescription
         }
     }
     
-    open func generate(_ expression: ClosureExpression.Signature) -> String {
+    open func generate(_ expression: ClosureExpression.Signature, node: ASTNode) -> String {
         var signatureText = [String]()
         if let captureList = expression.captureList {
             signatureText.append("[\(captureList.map(generate).joined(separator: ", "))]")
         }
         if let parameterClause = expression.parameterClause {
-            signatureText.append(generate(parameterClause))
+            signatureText.append(generate(parameterClause, node: node))
         }
         if expression.canThrow {
             signatureText.append("throws")
         }
         if let funcResult = expression.functionResult {
-            signatureText.append(generate(funcResult))
+            signatureText.append(generate(funcResult, node: node))
         }
         return signatureText.joined(separator: " ")
     }
@@ -163,7 +163,7 @@ extension Tokenizer {
             return "\(generate(postfixExpr)).\(identifier)"
         case let .generic(postfixExpr, identifier, genericArgumentClause):
             return "\(generate(postfixExpr)).\(identifier)" +
-            "\(generate(genericArgumentClause))"
+            "\(generate(genericArgumentClause, node: expression))"
         case let .argument(postfixExpr, identifier, argumentNames):
             var textDesc = "\(generate(postfixExpr)).\(identifier)"
             if !argumentNames.isEmpty {
@@ -211,9 +211,9 @@ extension Tokenizer {
     open func generate(_ expression: IdentifierExpression) -> String {
         switch expression.kind {
         case let .identifier(id, generic):
-            return "\(id)\(generic.map(generate) ?? "")"
+            return "\(id)\(generic.map { generate($0, node: expression) } ?? "")"
         case let .implicitParameterName(i, generic):
-            return "$\(i)\(generic.map(generate) ?? "")"
+            return "$\(i)\(generic.map { generate($0, node: expression) } ?? "")"
         }
     }
     
@@ -380,19 +380,19 @@ extension Tokenizer {
         case let .check(expr, type):
             exprText = generate(expr)
             operatorText = "is"
-            typeText = generate(type)
+            typeText = generate(type, node: expression)
         case let .cast(expr, type):
             exprText = generate(expr)
             operatorText = "as"
-            typeText = generate(type)
+            typeText = generate(type, node: expression)
         case let .conditionalCast(expr, type):
             exprText = generate(expr)
             operatorText = "as?"
-            typeText = generate(type)
+            typeText = generate(type, node: expression)
         case let .forcedCast(expr, type):
             exprText = generate(expr)
             operatorText = "as!"
-            typeText = generate(type)
+            typeText = generate(type, node: expression)
         }
         return "\(exprText) \(operatorText) \(typeText)"
     }
