@@ -126,8 +126,16 @@ extension Tokenizer {
     }
     
     open func tokenize(_ type: ProtocolCompositionType, node: ASTNode) -> [Token] {
-        return type.protocolTypes.map { tokenize($0, node: node) }
-            .joined(token: type.newToken(.delimiter, " & ", node))
+        if node is ClassDeclaration || node is StructDeclaration || node is EnumDeclaration {
+            return
+                type.newToken(.keyword, "protocol", node) +
+                type.newToken(.startOfScope, "<", node) +
+                type.protocolTypes.map { tokenize($0, node: node) }.joined(token: type.newToken(.delimiter, ", ", node)) +
+                type.newToken(.endOfScope, ">", node)            
+        } else {
+            return type.protocolTypes.map { tokenize($0, node: node) }
+                .joined(token: type.newToken(.delimiter, " & ", node))
+        }
     }
     
     open func tokenize(_ type: SelfType, node: ASTNode) -> [Token] {
