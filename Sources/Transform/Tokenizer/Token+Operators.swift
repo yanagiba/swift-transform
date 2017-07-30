@@ -34,7 +34,14 @@ public func +(left: [Token]?, right: Token?) -> [Token] {
 }
 
 public func +(left: [Token]?, right: [Token]?) -> [Token] {
-    return (left ?? []) + (right ?? [])
+    var tokens: [Token] = []
+    if let left = left {
+        tokens.append(contentsOf: left)
+    }
+    if let right = right {
+        tokens.append(contentsOf: right)
+    }
+    return tokens
 }
 
 public func +(left: Token?, right: [Token]?) -> [Token] {

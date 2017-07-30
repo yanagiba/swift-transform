@@ -54,6 +54,11 @@ extension Tokenizer {
         }
     }
     
+    // Review
+    open func tokenize(_ topLevelDeclaration: TopLevelDeclaration) -> [Token] {
+        return [topLevelDeclaration.newToken(.identifier, generate(topLevelDeclaration))]
+    }
+    
     open func generate(_ topLevelDeclaration: TopLevelDeclaration) -> String {
         return topLevelDeclaration.statements.map { generate($0, node: topLevelDeclaration) }.joined(separator: "\n") + "\n"
     }
