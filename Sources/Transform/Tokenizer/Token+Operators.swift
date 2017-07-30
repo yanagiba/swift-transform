@@ -57,9 +57,9 @@ public func +(left: Token?, right: [Token]?) -> [Token] {
 
 extension Collection where Iterator.Element == [Token] {
     public func joined(token: Token) -> [Token] {
-        return self.flatMap { $0 + token }
+        return Array(self.filter { !$0.isEmpty }.flatMap { $0 + token }.dropLast())
     }
-    
+
     public func joined() -> [Token] {
         return self.flatMap { $0 }
     }

@@ -270,7 +270,7 @@ extension Tokenizer {
     
     open func generate(_ signature: FunctionSignature, node: ASTNode) -> String {
         let parameterText = ["(\(signature.parameterList.map { generate($0, node: node) }.joined(separator: ", ")))"]
-        let throwsKindText = [tokenize(signature.throwsKind, node: node).joinedValues()]
+        let throwsKindText = [tokenize(signature.throwsKind, node: node).joinedValues()].filter { $0.count > 0 }
         let resultText = signature.result.map({ [generate($0, node: node)] }) ?? []
         return (parameterText + throwsKindText + resultText).joined(separator: " ")
     }

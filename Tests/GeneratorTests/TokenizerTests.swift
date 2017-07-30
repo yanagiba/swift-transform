@@ -36,7 +36,7 @@ class TokenizerTests : XCTestCase {
             "SelectorExpression",
             "KeyPathExpression",
             "KeyPathStringExpression",
-            
+
             // postfix expressions
             "PostfixOperatorExpression",
             "FunctionCallExpression",
@@ -46,20 +46,20 @@ class TokenizerTests : XCTestCase {
             "SubscriptExpression",
             "ForcedValueExpression",
             "OptionalChainingExpression",
-            
+
             // prefix expressions
             "PrefixOperatorExpression",
             "InOutExpression",
-            
+
             // binary expressions
             "BinaryOperatorExpression",
             "AssignmentOperatorExpression",
             "TernaryConditionalOperatorExpression",
             "TypeCastingOperatorExpression",
-            
+
             // try expression
             "TryOperatorExpression",
-            
+
             // statements
             "BreakStatement",
             "CompilerControlStatement",
@@ -76,7 +76,7 @@ class TokenizerTests : XCTestCase {
             "SwitchStatement",
             "ThrowStatement",
             "WhileStatement",
-            
+
             // declarations
             "ClassDeclaration",
             "ConstantDeclaration",
@@ -93,10 +93,10 @@ class TokenizerTests : XCTestCase {
             "SubscriptDeclaration",
             "TypealiasDeclaration",
             "VariableDeclaration",
-            
+
             // attributes
             "Attribute",
-            
+
             // types
             "Type",
             ]

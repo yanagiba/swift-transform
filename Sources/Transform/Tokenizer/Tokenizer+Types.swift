@@ -87,17 +87,17 @@ extension Tokenizer {
     
     open func tokenize(_ type: FunctionType.Argument, node: ASTNode) -> [Token] {
         let tokens = [
-            tokenize(type.attributes, node: node),
-            type.isInOutParameter ? [type.newToken(.keyword, "inout", node)] : [],
             type.externalName.map { [type.newToken(.identifier, $0, node)]} ?? [],
             type.localName.map { [
                 type.newToken(.identifier, $0, node),
                 type.newToken(.delimiter, ":", node)
             ]} ?? [],
+            tokenize(type.attributes, node: node),
+            type.isInOutParameter ? [type.newToken(.keyword, "inout", node)] : [],
+            tokenize(type.type, node: node),
         ]
         let variadicDots = type.isVariadic ? [type.newToken(.keyword, "...", node)] : []
         return tokens.joined(token: type.newToken(.space, " ", node)) +
-            tokenize(type.type, node: node) +
             variadicDots
     }
     
