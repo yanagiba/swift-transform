@@ -47,8 +47,14 @@ extension Tokenizer {
         return "where \(clause.requirementList.map { generate($0, node: node) }.joined(separator: ", "))"
     }
     
+    // TODO: Review
+    open func tokenize(_ clause: GenericArgumentClause, node: ASTNode) -> [Token] {
+        return [clause.newToken(.identifier, generate(clause, node: node), node)]
+    }
     open func generate(_ clause: GenericArgumentClause, node: ASTNode) -> String {
         return "<\(clause.argumentList.map { generate($0, node: node) }.joined(separator: ", "))>"
     }
 }
 
+
+extension GenericArgumentClause: ASTTokenizable {}

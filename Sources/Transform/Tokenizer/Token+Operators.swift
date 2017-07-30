@@ -52,6 +52,10 @@ extension Collection where Iterator.Element == [Token] {
     public func joined(token: Token) -> [Token] {
         return self.flatMap { $0 + token }
     }
+    
+    public func joined() -> [Token] {
+        return self.flatMap { $0 }
+    }
 }
 
 extension Collection where Iterator.Element == Token {
@@ -64,5 +68,10 @@ extension Array where Iterator.Element == Token {
     public func prefix(with token: Token) -> [Token] {
         guard !self.isEmpty else { return self }
         return token + self
+    }
+    
+    public func suffix(with token: Token) -> [Token] {
+        guard !self.isEmpty else { return self }
+        return self + token
     }
 }

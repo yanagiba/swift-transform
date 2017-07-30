@@ -17,6 +17,13 @@
 import AST
 
 extension Tokenizer {
+    
+    // TODO: Review
+    open func tokenize(_ attributes: Attributes, node: ASTNode) -> [Token] {
+        return attributes.map { [node.newToken(.identifier, generate($0), node)] }
+            .joined(token: node.newToken(.space, " ", node))
+    }
+    
     open func generate(_ attributes: Attributes) -> String {
         return attributes.map(generate).joined(separator: " ")
     }
