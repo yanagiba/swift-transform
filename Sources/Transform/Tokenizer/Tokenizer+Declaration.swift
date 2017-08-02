@@ -17,6 +17,11 @@
 import AST
 
 extension Tokenizer {
+    
+    // TODO: Review
+    open func tokenize(_ declaration: Declaration) -> [Token] {
+        return [declaration.newToken(.identifier, generate(declaration))]
+    }    
     open func generate(_ declaration: Declaration) -> String {
         switch declaration {
         case let decl as ClassDeclaration:
@@ -54,15 +59,18 @@ extension Tokenizer {
         }
     }
     
-    // Review
+    // TODO: Review
     open func tokenize(_ topLevelDeclaration: TopLevelDeclaration) -> [Token] {
         return [topLevelDeclaration.newToken(.identifier, generate(topLevelDeclaration))]
     }
-    
     open func generate(_ topLevelDeclaration: TopLevelDeclaration) -> String {
         return topLevelDeclaration.statements.map { generate($0, node: topLevelDeclaration) }.joined(separator: "\n") + "\n"
     }
-    
+
+    // TODO: Review
+    open func tokenize(_ codeBlock: CodeBlock) -> [Token] {
+        return [codeBlock.newToken(.identifier, generate(codeBlock))]
+    }
     open func generate(_ codeBlock: CodeBlock) -> String {
         if codeBlock.statements.isEmpty {
             return "{}"
@@ -297,7 +305,7 @@ extension Tokenizer {
         let genericParamText = declaration.genericParameterClause.map { generate($0, node: declaration) } ?? ""
         let parameterText = "(\(declaration.parameterList.map { generate($0, node: declaration) }.joined(separator: ", ")))"
         let throwsKindText = tokenize(declaration.throwsKind, node: declaration)
-            .prefix(with: declaration.newToken(.space, " "))
+            .prefix(with: declaration.newToken(.space, " ", declaration))
             .joinedValues()
         let genericWhereText = declaration.genericWhereClause.map({ " \(generate($0, node: declaration))" }) ?? ""
         let bodyText = generate(declaration.body)
@@ -570,3 +578,10 @@ extension Tokenizer {
 
 extension ProtocolDeclaration.InitializerMember: ASTTokenizable {}
 
+
+// TODO: Delete when ready
+extension Declaration {
+    func newToken(_ kind: Token.Kind, _ value: String) -> Token {
+        return Token(origin: self as? ASTTokenizable, node: self as? ASTNode, kind: kind, value: value)
+    }
+}

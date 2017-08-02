@@ -17,6 +17,11 @@
 import AST
 
 extension Tokenizer {
+    
+    // TODO: Review
+    open func tokenize(_ expression: Expression) -> [Token] {
+        return [expression.newToken(.identifier, generate(expression))]
+    }
     open func generate(_ expression: Expression) -> String {
         switch expression {
         case let expr as AssignmentOperatorExpression:
@@ -413,6 +418,13 @@ extension Tokenizer {
             identifierText = "\(id): "
         }
         return "\(identifierText)\(generate(arg.expression))"
+    }
+}
+
+// TODO: Delete when ready
+extension Expression {
+    func newToken(_ kind: Token.Kind, _ value: String) -> Token {
+        return Token(origin: self as? ASTTokenizable, node: self as? ASTNode, kind: kind, value: value)
     }
 }
 

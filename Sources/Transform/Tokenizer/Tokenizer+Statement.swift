@@ -17,230 +17,319 @@
 import AST
 
 extension Tokenizer {
-    open func generate(_ statement: Statement, node: ASTNode) -> String {
+    open func tokenize(_ statement: Statement, node: ASTNode) -> [Token] {
         switch statement {
         case let decl as Declaration:
-            return generate(decl)
+            return tokenize(decl)
         case let expr as Expression:
-            return generate(expr)
+            return tokenize(expr)
         case let stmt as BreakStatement:
-            return generate(stmt)
+            return tokenize(stmt)
         case let stmt as CompilerControlStatement:
-            return generate(stmt)
+            return tokenize(stmt)
         case let stmt as ContinueStatement:
-            return generate(stmt)
+            return tokenize(stmt)
         case let stmt as DeferStatement:
-            return generate(stmt)
+            return tokenize(stmt)
         case let stmt as DoStatement:
-            return generate(stmt)
+            return tokenize(stmt)
         case let stmt as FallthroughStatement:
-            return generate(stmt)
+            return tokenize(stmt)
         case let stmt as ForInStatement:
-            return generate(stmt)
+            return tokenize(stmt)
         case let stmt as GuardStatement:
-            return generate(stmt)
+            return tokenize(stmt)
         case let stmt as IfStatement:
-            return generate(stmt)
+            return tokenize(stmt)
         case let stmt as LabeledStatement:
-            return generate(stmt)
+            return tokenize(stmt)
         case let stmt as RepeatWhileStatement:
-            return generate(stmt)
+            return tokenize(stmt)
         case let stmt as ReturnStatement:
-            return generate(stmt)
+            return tokenize(stmt)
         case let stmt as SwitchStatement:
-            return generate(stmt)
+            return tokenize(stmt)
         case let stmt as ThrowStatement:
-            return generate(stmt)
+            return tokenize(stmt)
         case let stmt as WhileStatement:
-            return generate(stmt)
+            return tokenize(stmt)
         default:
-            return statement.textDescription
+            return [node.newToken(.identifier, statement.textDescription)]
         }
     }
     
-    open func generate(_ statement: BreakStatement) -> String {
-        if let labelName = statement.labelName {
-            return "break \(labelName)"
-        }
-        return "break"
+    open func tokenize(_ statement: BreakStatement) -> [Token] {
+        return [
+            [statement.newToken(.keyword, "break")],
+            statement.labelName.map { [statement.newToken(.identifier, $0)] } ?? []
+        ].joined(token: statement.newToken(.space, " "))
     }
     
-    open func generate(_ statement: CompilerControlStatement) -> String {
+    open func tokenize(_ statement: CompilerControlStatement) -> [Token] {
         switch statement.kind {
         case .if(let condition):
-            return "#if\(condition)"
+            return statement.newToken(.keyword, "#if") + statement.newToken(.identifier, condition)
         case .elseif(let condition):
-            return "#elseif\(condition)"
+            return statement.newToken(.keyword, "#elseif") + statement.newToken(.identifier, condition)
         case .else:
-            return "#else"
+            return [statement.newToken(.keyword, "#else")]
         case .endif:
-            return "#endif"
+            return [statement.newToken(.keyword, "#endif")]
         case let .sourceLocation(fileName, lineNumber):
+            var lineTokens = [Token]()
             if let fileName = fileName, let lineNumber = lineNumber {
-                return "#sourceLocation(file: \"\(fileName)\", line: \(lineNumber))"
+                lineTokens = [statement.newToken(.identifier, "file: \"\(fileName)\", line: \(lineNumber)")]
             }
-            return "#sourceLocation()"
+            return [
+                statement.newToken(.keyword, "#sourceLocation"),
+                statement.newToken(.startOfScope, "(")
+                ] +
+                lineTokens +
+                [statement.newToken(.endOfScope, ")")]
         }
     }
     
-    open func generate(_ statement: ContinueStatement) -> String {
-        if let labelName = statement.labelName {
-            return "continue \(labelName)"
-        }
-        return "continue"
+    open func tokenize(_ statement: ContinueStatement) -> [Token] {
+        return [
+            [statement.newToken(.keyword, "continue")],
+            statement.labelName.map { [statement.newToken(.identifier, $0)] } ?? []
+        ].joined(token: statement.newToken(.space, " "))
     }
     
-    open func generate(_ statement: DeferStatement) -> String {
-        return "defer \(generate(statement.codeBlock))"
+    open func tokenize(_ statement: DeferStatement) -> [Token] {
+        return [
+            [statement.newToken(.keyword, "defer")],
+            tokenize(statement.codeBlock)
+        ].joined(token: statement.newToken(.space, " "))
     }
     
-    open func generate(_ statement: DoStatement) -> String {
-        return (["do \(generate(statement.codeBlock))"] +
-            statement.catchClauses.map { generate($0, node: statement) }).joined(separator: " ")
+    open func tokenize(_ statement: DoStatement) -> [Token] {
+        return [
+            [statement.newToken(.keyword, "do")],
+            tokenize(statement.codeBlock),
+            tokenize(statement.catchClauses, node: statement)
+        ].joined(token: statement.newToken(.space, " "))
     }
     
-    open func generate(_ statement: DoStatement.CatchClause, node: ASTNode) -> String {
-        var patternText = ""
-        if let pattern = statement.pattern {
-            patternText = " \(generate(pattern, node: node))"
-        }
-        var whereText = ""
-        if let whereExpr = statement.whereExpression {
-            whereText = " where \(generate(whereExpr))"
-        }
-        return "catch\(patternText)\(whereText) \(generate(statement.codeBlock))"
+    open func tokenize(_ statements: [DoStatement.CatchClause], node: ASTNode) -> [Token] {
+        return statements.map { tokenize($0, node: node) }.joined(token: node.newToken(.space, " "))
     }
     
-    open func generate(_ statement: FallthroughStatement) -> String {
-        return "fallthrough"
+    open func tokenize(_ statement: DoStatement.CatchClause, node: ASTNode) -> [Token] {
+        return [
+            [node.newToken(.keyword, "catch")],
+            statement.pattern.map { tokenize($0, node: node) } ?? [],
+            statement.whereExpression.map { [$0.newToken(.keyword, "where")] } ?? [],
+            statement.whereExpression.map { tokenize($0, node: node) } ?? [],
+            tokenize(statement.codeBlock)
+        ].joined(token: statement.newToken(.space, " ", node))
     }
     
-    open func generate(_ statement: ForInStatement) -> String {
-        var descr = "for"
-        if statement.item.isCaseMatching {
-            descr += " case"
-        }
-        descr += " \(generate(statement.item.matchingPattern, node: statement)) in \(generate(statement.collection)) "
-        if let whereClause = statement.item.whereClause {
-            descr += "where \(generate(whereClause)) "
-        }
-        descr += generate(statement.codeBlock)
-        return descr
+    open func tokenize(_ statement: FallthroughStatement) -> [Token] {
+        return [statement.newToken(.keyword, "fallthrough")]
     }
     
-    open func generate(_ statement: GuardStatement) -> String {
-        return "guard \(generate(statement.conditionList)) else \(generate(statement.codeBlock))"
+    open func tokenize(_ statement: ForInStatement) -> [Token] {
+        return [
+            [statement.newToken(.keyword, "for")],
+            statement.item.isCaseMatching ? [statement.newToken(.keyword, "case")] : [],
+            tokenize(statement.item.matchingPattern, node: statement),
+            [statement.newToken(.keyword, "in")],
+            tokenize(statement.collection),
+            statement.item.whereClause.map { [$0.newToken(.keyword, "where")] } ?? [],
+            statement.item.whereClause.map { tokenize($0) } ?? [],
+            tokenize(statement.codeBlock)
+        ].joined(token: statement.newToken(.space, " "))
     }
     
-    open func generate(_ statement: IfStatement) -> String {
-        var elseText = ""
-        if let elseClause = statement.elseClause {
-            elseText = " \(generate(elseClause))"
-        }
-        return "if \(generate(statement.conditionList)) \(generate(statement.codeBlock))\(elseText)"
+    open func tokenize(_ statement: GuardStatement) -> [Token] {
+        return [
+            [statement.newToken(.keyword, "guard")],
+            tokenize(statement.conditionList, node: statement),
+            [statement.newToken(.keyword, "else")],
+            tokenize(statement.codeBlock)
+        ].joined(token: statement.newToken(.space, " "))
     }
     
-    open func generate(_ statement: IfStatement.ElseClause) -> String {
+    open func tokenize(_ statement: IfStatement) -> [Token] {
+        return [
+            [statement.newToken(.keyword, "if")],
+            tokenize(statement.conditionList, node: statement),
+            tokenize(statement.codeBlock),
+            statement.elseClause.map { tokenize($0, node: statement) } ?? []
+        ].joined(token: statement.newToken(.space, " "))
+    }
+    
+    open func tokenize(_ statement: IfStatement.ElseClause, node: ASTNode) -> [Token] {
+        var blockTokens = [Token]()
         switch statement {
         case .else(let codeBlock):
-            return "else \(generate(codeBlock))"
+            blockTokens = tokenize(codeBlock)
         case .elseif(let ifStmt):
-            return "else \(generate(ifStmt))"
+            blockTokens = tokenize(ifStmt)
         }
+        return [
+            [statement.newToken(.keyword, "else", node)],
+            blockTokens
+        ].joined(token: statement.newToken(.space, " ", node))
     }
     
-    open func generate(_ statement: LabeledStatement) -> String {
-        return "\(statement.labelName): \(generate(statement.statement, node: statement))"
+    open func tokenize(_ statement: LabeledStatement) -> [Token] {
+        return
+            statement.newToken(.identifier, statement.labelName, statement) +
+            statement.newToken(.delimiter, ": ") +
+            tokenize(statement.statement, node: statement)
     }
     
-    open func generate(_ statement: RepeatWhileStatement) -> String {
-        return "repeat \(generate(statement.codeBlock)) while \(generate(statement.conditionExpression))"
+    open func tokenize(_ statement: RepeatWhileStatement) -> [Token] {
+        return [
+            [statement.newToken(.keyword, "repeat")],
+            tokenize(statement.codeBlock),
+            [statement.newToken(.keyword, "while")],
+            tokenize(statement.conditionExpression),
+        ].joined(token: statement.newToken(.space, " "))
     }
     
-    open func generate(_ statement: ReturnStatement) -> String {
-        if let expression = statement.expression {
-            return "return \(generate(expression))"
-        }
-        return "return"
+    open func tokenize(_ statement: ReturnStatement) -> [Token] {
+        return [
+            [statement.newToken(.keyword, "return")],
+            statement.expression.map { tokenize($0) } ?? []
+        ].joined(token: statement.newToken(.space, " "))
     }
     
-    open func generate(_ statement: SwitchStatement) -> String {
-        var casesDescr = "{}"
+    open func tokenize(_ statement: SwitchStatement) -> [Token] {
+        var casesTokens = statement.newToken(.startOfScope, "{") + statement.newToken(.endOfScope, "}")
         if !statement.cases.isEmpty {
-            let casesText = statement.cases.map { generate($0, node: statement) }.joined(separator: "\n")
-            casesDescr = "{\n\(casesText)\n}"
+            casesTokens = [
+                [statement.newToken(.startOfScope, "{")],
+                statement.cases.map { tokenize($0, node: statement) }.joined(token: statement.newToken(.linebreak, "\n")),
+                [statement.newToken(.endOfScope, "}")]
+            ].joined(token: statement.newToken(.linebreak, "\n"))
         }
-        return "switch \(generate(statement.expression)) \(casesDescr)"
+        
+        return [
+            [statement.newToken(.keyword, "switch")],
+            tokenize(statement.expression),
+            casesTokens
+        ].joined(token: statement.newToken(.space, " "))        
     }
     
-    open func generate(_ statement: SwitchStatement.Case.Item, node: ASTNode) -> String {
-        var whereText = ""
-        if let whereExpr = statement.whereExpression {
-            whereText = " where \(generate(whereExpr))"
-        }
-        return "\(generate(statement.pattern, node: node))\(whereText)"
-    }
-    
-    open func generate(_ statement: SwitchStatement.Case, node: ASTNode) -> String {
+    open func tokenize(_ statement: SwitchStatement.Case, node: ASTNode) -> [Token] {
         switch statement {
         case let .case(itemList, stmts):
-            let itemListText = itemList.map { generate($0, node: node) }.joined(separator: ", ")
-            return "case \(itemListText):\n\(generate(stmts, node: node).indent)"
+            return
+                statement.newToken(.keyword, "case", node) +
+                statement.newToken(.space, " ", node) +
+                itemList.map { tokenize($0, node: node) }.joined(token: statement.newToken(.delimiter, ", ", node)) +
+                statement.newToken(.delimiter, ":", node) +
+                indent(
+                    statement.newToken(.linebreak, "\n", node) +
+                    tokenize(stmts, node: node))
+            
         case .default(let stmts):
-            return "default:\n\(generate(stmts, node: node).indent)"
+            return
+                statement.newToken(.keyword, "default", node) +
+                statement.newToken(.delimiter, ":", node) +
+                indent(
+                    statement.newToken(.linebreak, "\n", node) +
+                    tokenize(stmts, node: node))
         }
     }
     
-    open func generate(_ statement: ThrowStatement) -> String {
-        return "throw \(generate(statement.expression))"
+    open func tokenize(_ statement: SwitchStatement.Case.Item, node: ASTNode) -> [Token] {
+        return [
+            tokenize(statement.pattern, node: node),
+            statement.whereExpression.map { [$0.newToken(.keyword, "where")] } ?? [],
+            statement.whereExpression.map { tokenize($0, node: node) } ?? []
+        ].joined(token: statement.newToken(.space, " ", node))
     }
     
-    open func generate(_ statement: WhileStatement) -> String {
-        return "while \(generate(statement.conditionList)) \(generate(statement.codeBlock))"
+    open func tokenize(_ statement: ThrowStatement) -> [Token] {
+        return
+            statement.newToken(.keyword, "throw") +
+            statement.newToken(.space, " ") +
+            tokenize(statement.expression)
+    }
+    
+    open func tokenize(_ statement: WhileStatement) -> [Token] {
+        return [
+            [statement.newToken(.keyword, "while")],
+            tokenize(statement.conditionList, node: statement),
+            tokenize(statement.codeBlock)
+        ].joined(token: statement.newToken(.space, " "))
     }
     
     // MARK: Utils
     
-    open func generate(_ statements: [Statement], node: ASTNode) -> String {
-        return statements.map { generate($0, node: node) }.joined(separator: "\n")
+    open func tokenize(_ statements: [Statement], node: ASTNode) -> [Token] {
+        return statements.map { tokenize($0, node: node) }.joined(token: node.newToken(.linebreak, "\n"))
     }
     
-    open func generate(_ conditions: ConditionList) -> String {
-        return conditions.map(generate).joined(separator: ", ")
+    open func tokenize(_ conditions: ConditionList, node: ASTNode) -> [Token] {
+        return conditions.map { tokenize($0, node: node) }.joined(token: node.newToken(.delimiter, ", "))
     }
     
-    open func generate(_ condition: Condition) -> String {
+    open func tokenize(_ condition: Condition, node: ASTNode) -> [Token] {
         switch condition {
         case .expression(let expr):
-            return generate(expr)
+            return tokenize(expr)
         case .availability(let availabilityCondition):
-            return generate(availabilityCondition)
+            return tokenize(availabilityCondition, node: node)
         case let .case(pattern, expr):
-            return "case \(pattern) = \(expr)"
+            return [
+                [condition.newToken(.keyword, "case", node)],
+                tokenize(pattern, node: node),
+                [condition.newToken(.symbol, "=", node)],
+                tokenize(expr)
+            ].joined(token: condition.newToken(.space, " ", node))
         case let .let(pattern, expr):
-            return "let \(pattern) = \(expr)"
+            return [
+                [condition.newToken(.keyword, "let", node)],
+                tokenize(pattern, node: node),
+                [condition.newToken(.symbol, "=", node)],
+                tokenize(expr)
+            ].joined(token: condition.newToken(.space, " ", node))
         case let .var(pattern, expr):
-            return "var \(pattern) = \(expr)"
-            
+            return [
+                [condition.newToken(.keyword, "var", node)],
+                tokenize(pattern, node: node),
+                [condition.newToken(.symbol, "=", node)],
+                tokenize(expr)
+            ].joined(token: condition.newToken(.space, " ", node))
         }
     }
     
-    open func generate(_ argument: AvailabilityCondition.Argument) -> String {
-        switch argument {
-        case let .major(platformName, majorVersion):
-            return "\(platformName) \(majorVersion)"
-        case let .minor(platformName, majorVersion, minorVersion):
-            return "\(platformName) \(majorVersion).\(minorVersion)"
-        case let .patch(platformName, majorVersion, minorVersion, patchVersion):
-            return "\(platformName) \(majorVersion).\(minorVersion).\(patchVersion)"
-        case .all:
-            return "*"
-        }
+    open func tokenize(_ condition:  AvailabilityCondition, node: ASTNode) -> [Token] {
+        return
+            condition.newToken(.keyword, "#available", node) +
+            condition.newToken(.startOfScope, "(", node) +
+            condition.arguments.map { tokenize($0, node: node) }.joined(token: condition.newToken(.delimiter, ", ", node)) +
+            condition.newToken(.endOfScope, ")", node)
     }
     
-    open func generate(_ condition:  AvailabilityCondition) -> String {
-        let argumentsText = condition.arguments.map(generate).joined(separator: ", ")
-        return "#available(\(argumentsText))"
+    open func tokenize(_ argument: AvailabilityCondition.Argument, node: ASTNode) -> [Token] {
+        return [argument.newToken(.identifier, argument.textDescription, node)]
     }
+    
+    
+    // TODO: Delete temporal generates
+    open func generate(_ statement: Statement, node: ASTNode) -> String {
+        return tokenize(statement, node: node).joinedValues()
+    }
+    open func generate(_ statements: [Statement], node: ASTNode) -> String {
+        return tokenize(statements, node: node).joinedValues()
+    }
+    open func generate(_ statement: CompilerControlStatement) -> String {
+       return tokenize(statement).joinedValues()
+    }
+
+
 }
 
+extension DoStatement.CatchClause: ASTTokenizable {}
+extension IfStatement.ElseClause: ASTTokenizable {}
+extension SwitchStatement.Case: ASTTokenizable {}
+extension SwitchStatement.Case.Item: ASTTokenizable {}
+extension Condition: ASTTokenizable {}
+extension AvailabilityCondition: ASTTokenizable {}
+extension AvailabilityCondition.Argument: ASTTokenizable {}

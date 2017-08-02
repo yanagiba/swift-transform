@@ -58,13 +58,13 @@ extension Tokenizer {
     }
     
     open func tokenize(_ type: DictionaryType, node: ASTNode) -> [Token] {
-        return
-            type.newToken(.startOfScope, "[", node) +
+        return (
             tokenize(type.keyType, node: node) +
             type.newToken(.delimiter, ":", node) +
             type.newToken(.space, " ", node) +
-            tokenize(type.valueType, node: node) +
-            type.newToken(.endOfScope, "]", node)
+            tokenize(type.valueType, node: node)
+        ).prefix(with: type.newToken(.startOfScope, "[", node))
+        .suffix(with: type.newToken(.endOfScope, "]", node))
     }
     
     open func tokenize(_ type: FunctionType, node: ASTNode) -> [Token] {

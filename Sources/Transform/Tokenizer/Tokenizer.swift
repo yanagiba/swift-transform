@@ -18,8 +18,15 @@ import Foundation
 
 open class Tokenizer {
     let options: [String: Any]?
+    let indentation = "  "
     
     public init(options: [String: Any]? = nil) {
         self.options = options
+    }
+    
+    open func indent(_ tokens: [Token]) -> [Token] {
+        return tokens.reduce([]) { (result, token) -> [Token] in
+            return result + token + (token.kind == .linebreak ? token.node?.newToken(.indentation, indentation) : nil)
+        }
     }
 }

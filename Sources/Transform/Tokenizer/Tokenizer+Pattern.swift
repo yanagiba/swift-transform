@@ -17,6 +17,11 @@
 import AST
 
 extension Tokenizer {
+    
+    // TODO: Review
+    open func tokenize(_ pattern: Pattern, node: ASTNode) -> [Token] {
+        return [node.newToken(.identifier, generate(pattern, node: node))]
+    }
     open func generate(_ pattern: Pattern, node: ASTNode) -> String {
         switch pattern {
         case let pattern as EnumCasePattern:
