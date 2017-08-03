@@ -18,93 +18,117 @@ import AST
 
 extension Tokenizer {
     
-    // TODO: Review
     open func tokenize(_ pattern: Pattern, node: ASTNode) -> [Token] {
-        return [node.newToken(.identifier, generate(pattern, node: node))]
-    }
-    open func generate(_ pattern: Pattern, node: ASTNode) -> String {
         switch pattern {
         case let pattern as EnumCasePattern:
-            return generate(pattern, node: node)
+            return tokenize(pattern, node: node)
         case let pattern as ExpressionPattern:
-            return generate(pattern)
+            return tokenize(pattern)
         case let pattern as IdentifierPattern:
-            return generate(pattern, node: node)
+            return tokenize(pattern, node: node)
         case let pattern as OptionalPattern:
-            return generate(pattern, node: node)
+            return tokenize(pattern, node: node)
         case let pattern as TuplePattern:
-            return generate(pattern, node: node)
+            return tokenize(pattern, node: node)
         case let pattern as TypeCastingPattern:
-            return generate(pattern, node: node)
+            return tokenize(pattern, node: node)
         case let pattern as ValueBindingPattern:
-            return generate(pattern, node: node)
+            return tokenize(pattern, node: node)
         case let pattern as WildcardPattern:
-            return generate(pattern, node: node)
+            return tokenize(pattern, node: node)
         default:
-            return pattern.textDescription
+            return [node.newToken(.identifier, pattern.textDescription)]
         }
     }
     
-    open func generate(_ pattern: EnumCasePattern, node: ASTNode) -> String {
-        return "\(pattern.typeIdentifier.map { generate($0, node: node) } ?? "").\(pattern.name)\(pattern.tuplePattern.map { generate($0, node: node) } ?? "")"
+    open func tokenize(_ pattern: EnumCasePattern, node: ASTNode) -> [Token] {
+        return
+            pattern.typeIdentifier.map { tokenize($0, node: node) } +
+            pattern.newToken(.delimiter, ".", node) +
+            pattern.newToken(.identifier, pattern.name, node) +
+            pattern.tuplePattern.map { tokenize($0, node: node) }
     }
     
-    open func generate(_ pattern: ExpressionPattern) -> String {
-        return generate(pattern.expression)
+    open func tokenize(_ pattern: ExpressionPattern) -> [Token] {
+        return tokenize(pattern.expression)
     }
     
-    open func generate(_ pattern: IdentifierPattern, node: ASTNode) -> String {
-        return "\(pattern.identifier)\(pattern.typeAnnotation.map { generate($0, node: node) } ?? "")"
+    open func tokenize(_ pattern: IdentifierPattern, node: ASTNode) -> [Token] {
+        return
+            pattern.newToken(.identifier, pattern.identifier, node) +
+            pattern.typeAnnotation.map { tokenize($0, node: node) }
     }
     
-    open func generate(_ pattern: OptionalPattern, node: ASTNode) -> String {
+    open func tokenize(_ pattern: OptionalPattern, node: ASTNode) -> [Token] {
         switch pattern.kind {
         case .identifier(let idPttrn):
-            return "\(generate(idPttrn, node: node))?"
+            return tokenize(idPttrn, node: node) + pattern.newToken(.symbol, "?", node)
         case .wildcard:
-            return "_?"
+            return pattern.newToken(.symbol, "_", node) + pattern.newToken(.symbol, "?", node)
         case .enumCase(let enumCasePttrn):
-            return "\(generate(enumCasePttrn, node: node))?"
+            return tokenize(enumCasePttrn, node: node) + pattern.newToken(.symbol, "?", node)
         case .tuple(let tuplePttrn):
-            return "\(generate(tuplePttrn, node: node))?"
+            return tokenize(tuplePttrn, node: node) + pattern.newToken(.symbol, "?", node)
         }
     }
     
-    open func generate(_ pattern: TuplePattern, node: ASTNode) -> String {
-        let elemStr = pattern.elementList.map { generate($0, node: node) }.joined(separator: ", ")
-        let annotationStr = pattern.typeAnnotation.map { generate($0, node: node) } ?? ""
-        return "(\(elemStr))\(annotationStr)"
+    open func tokenize(_ pattern: TuplePattern, node: ASTNode) -> [Token] {
+        return
+            pattern.newToken(.startOfScope, "(", node) +
+            pattern.elementList.map { tokenize($0, node: node) }.joined(token: pattern.newToken(.delimiter, ", ", node)) +
+            pattern.newToken(.endOfScope, ")", node) +
+            pattern.typeAnnotation.map { tokenize($0, node: node) }
     }
     
-    open func generate(_ pattern: TuplePattern.Element, node: ASTNode) -> String {
-        switch pattern {
+    open func tokenize(_ element: TuplePattern.Element, node: ASTNode) -> [Token] {
+        switch element {
         case .pattern(let pattern):
-            return generate(pattern, node: node)
+            return tokenize(pattern, node: node)
         case let .namedPattern(name, pattern):
-            return "\(name): \(generate(pattern, node: node))"
+            return element.newToken(.identifier, name, node) +
+                element.newToken(.delimiter, ": ", node) +
+                tokenize(pattern, node: node)
         }
     }
     
-    open func generate(_ pattern: TypeCastingPattern, node: ASTNode) -> String {
+    open func tokenize(_ pattern: TypeCastingPattern, node: ASTNode) -> [Token] {
         switch pattern.kind {
         case .is(let type):
-            return "is \(generate(type, node: node))"
-        case let .as(pattern, type):
-            return "\(generate(pattern, node: node)) as \(generate(type, node: node))"
+            return pattern.newToken(.keyword, "is", node) +
+                pattern.newToken(.space, " ", node) +
+                tokenize(type, node: node)
+        case let .as(p, type):
+            return tokenize(p, node: node) +
+            pattern.newToken(.space, " ", node) +
+            pattern.newToken(.keyword, "as", node) +
+            pattern.newToken(.space, " ", node) +
+            tokenize(type, node: node)
         }
     }
     
-    open func generate(_ pattern: ValueBindingPattern, node: ASTNode) -> String {
+    open func tokenize(_ pattern: ValueBindingPattern, node: ASTNode) -> [Token] {
         switch pattern.kind {
-        case .var(let pattern):
-            return "var \(generate(pattern, node: node))"
-        case .let(let pattern):
-            return "let \(generate(pattern, node: node))"
+        case .var(let p):
+            return pattern.newToken(.keyword, "var", node) +
+                pattern.newToken(.space, " ", node) +
+                tokenize(p, node: node)
+        case .let(let p):
+            return pattern.newToken(.keyword, "let", node) +
+                pattern.newToken(.space, " ", node) +
+                tokenize(p, node: node)
         }
     }
     
-    open func generate(_ pattern: WildcardPattern, node: ASTNode) -> String {
-        return "_\(pattern.typeAnnotation.map { generate($0, node: node) } ?? "")"
+    open func tokenize(_ pattern: WildcardPattern, node: ASTNode) -> [Token] {
+        return pattern.newToken(.keyword, "_", node) +
+            pattern.typeAnnotation.map { tokenize($0, node: node) }
+    }
+    
+    // TODO: Delete temporal generates
+    open func generate(_ pattern: Pattern, node: ASTNode) -> String {
+        return tokenize(pattern, node: node).joinedValues()
     }
 }
 
+extension PatternBase: ASTTokenizable {}
+extension TuplePattern.Element: ASTTokenizable {}

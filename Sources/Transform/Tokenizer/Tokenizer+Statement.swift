@@ -117,7 +117,7 @@ extension Tokenizer {
     
     open func tokenize(_ statement: DoStatement.CatchClause, node: ASTNode) -> [Token] {
         return [
-            [node.newToken(.keyword, "catch")],
+            [statement.newToken(.keyword, "catch", node)],
             statement.pattern.map { tokenize($0, node: node) } ?? [],
             statement.whereExpression.map { [$0.newToken(.keyword, "where")] } ?? [],
             statement.whereExpression.map { tokenize($0, node: node) } ?? [],
