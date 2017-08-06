@@ -121,7 +121,8 @@ extension Generator {
   open func generate(_ expression: ClosureExpression.Signature.ParameterClause.Parameter) -> String {
     var paramText = expression.name
     if let typeAnnotation = expression.typeAnnotation {
-      paramText += generate(typeAnnotation)
+      paramText += generate(typeAnnotation, node: WildcardExpression())
+            // TODO: guess this method will be removed entirely, so I just put a dummy node here ;)
       if expression.isVarargs {
         paramText += "..."
       }
@@ -163,7 +164,7 @@ extension Generator {
       return "\(generate(postfixExpr)).\(identifier)"
     case let .generic(postfixExpr, identifier, genericArgumentClause):
       return "\(generate(postfixExpr)).\(identifier)" +
-      "\(generate(genericArgumentClause))"
+      "\(generate(genericArgumentClause, node: expression))"
     case let .argument(postfixExpr, identifier, argumentNames):
       var textDesc = "\(generate(postfixExpr)).\(identifier)"
       if !argumentNames.isEmpty {
@@ -211,9 +212,9 @@ extension Generator {
   open func generate(_ expression: IdentifierExpression) -> String {
     switch expression.kind {
     case let .identifier(id, generic):
-      return "\(id)\(generic.map(generate) ?? "")"
+      return "\(id)\(generic.map({ generate($0, node: expression) }) ?? "")"
     case let .implicitParameterName(i, generic):
-      return "$\(i)\(generic.map(generate) ?? "")"
+      return "$\(i)\(generic.map({ generate($0, node: expression) }) ?? "")"
     }
   }
 
@@ -380,19 +381,19 @@ extension Generator {
     case let .check(expr, type):
       exprText = generate(expr)
       operatorText = "is"
-      typeText = generate(type)
+      typeText = generate(type, node: expression)
     case let .cast(expr, type):
       exprText = generate(expr)
       operatorText = "as"
-      typeText = generate(type)
+      typeText = generate(type, node: expression)
     case let .conditionalCast(expr, type):
       exprText = generate(expr)
       operatorText = "as?"
-      typeText = generate(type)
+      typeText = generate(type, node: expression)
     case let .forcedCast(expr, type):
       exprText = generate(expr)
       operatorText = "as!"
-      typeText = generate(type)
+      typeText = generate(type, node: expression)
     }
     return "\(exprText) \(operatorText) \(typeText)"
   }

@@ -17,124 +17,107 @@
 import AST
 
 extension Generator {
-  open func generate(_ type: Type) -> String {
+  open func generate(_ type: Type, node: ASTNode) -> String {
     switch type {
     case let type as AnyType:
-      return generate(type)
+      return generate(type, node: node)
     case let type as ArrayType:
-      return generate(type)
+      return generate(type, node: node)
     case let type as DictionaryType:
-      return generate(type)
+      return generate(type, node: node)
     case let type as FunctionType:
-      return generate(type)
+      return generate(type, node: node)
     case let type as ImplicitlyUnwrappedOptionalType:
-      return generate(type)
+      return generate(type, node: node)
     case let type as MetatypeType:
-      return generate(type)
+      return generate(type, node: node)
     case let type as OptionalType:
-      return generate(type)
+      return generate(type, node: node)
     case let type as ProtocolCompositionType:
-      return generate(type)
+      return generate(type, node: node)
     case let type as SelfType:
-      return generate(type)
+      return generate(type, node: node)
     case let type as TupleType:
-      return generate(type)
+      return generate(type, node: node)
     case let type as TypeIdentifier:
-      return generate(type)
+      return generate(type, node: node)
     default:
       return type.textDescription
     }
   }
 
-  open func generate(_ type: AnyType) -> String {
-    return "Any"
+  open func generate(_ type: AnyType, node: ASTNode) -> String {
+    let tokens = _tokenizer.tokenize(type, node: node)
+    return _tokenJoiner.join(tokens: tokens)
   }
 
-  open func generate(_ type: ArrayType) -> String {
-    return "[\(generate(type.elementType))]"
+  open func generate(_ type: ArrayType, node: ASTNode) -> String {
+    let tokens = _tokenizer.tokenize(type, node: node)
+    return _tokenJoiner.join(tokens: tokens)
   }
 
-  open func generate(_ type: DictionaryType) -> String {
-    return "[\(generate(type.keyType)): \(generate(type.valueType))]"
+  open func generate(_ type: DictionaryType, node: ASTNode) -> String {
+    let tokens = _tokenizer.tokenize(type, node: node)
+    return _tokenJoiner.join(tokens: tokens)
   }
 
-  open func generate(_ type: FunctionType) -> String {
-    let attrsText = type.attributes.isEmpty ? "" : "\(generate(type.attributes)) "
-    let argsText = "(\(type.arguments.map(generate).joined(separator: ", ")))"
-    let throwsText = generate(type.throwsKind).isEmpty ? "" : " \(generate(type.throwsKind))"
-    return "\(attrsText)\(argsText)\(throwsText) -> \(generate(type.returnType))"
+  open func generate(_ type: FunctionType, node: ASTNode) -> String {
+    let tokens = _tokenizer.tokenize(type, node: node)
+    return _tokenJoiner.join(tokens: tokens)
   }
 
-  open func generate(_ type: FunctionType.Argument) -> String {
-    let attr = type.attributes.isEmpty ? "" : "\(generate(type.attributes)) "
-    let inoutStr = type.isInOutParameter ? "inout " : ""
-    var nameStr = type.externalName.map({ "\($0) " }) ?? ""
-    if let localName = type.localName {
-      nameStr += "\(localName): "
-    }
-    let variadicDots = type.isVariadic ? "..." : ""
-    return "\(nameStr)\(attr)\(inoutStr)\(generate(type.type))\(variadicDots)"
+  open func generate(_ type: FunctionType.Argument, node: ASTNode) -> String {
+    let tokens = _tokenizer.tokenize(type, node: node)
+    return _tokenJoiner.join(tokens: tokens)
   }
 
-  open func generate(_ type: ImplicitlyUnwrappedOptionalType) -> String {
-    return "\(generate(type.wrappedType))!"
+  open func generate(_ type: ImplicitlyUnwrappedOptionalType, node: ASTNode) -> String {
+    let tokens = _tokenizer.tokenize(type, node: node)
+    return _tokenJoiner.join(tokens: tokens)
   }
 
-  open func generate(_ type: MetatypeType) -> String {
-    switch type.kind {
-    case .type:
-      return "\(generate(type.referenceType)).Type"
-    case .protocol:
-      return "\(generate(type.referenceType)).Protocol"
-    }
+  open func generate(_ type: MetatypeType, node: ASTNode) -> String {
+    let tokens = _tokenizer.tokenize(type, node: node)
+    return _tokenJoiner.join(tokens: tokens)
   }
 
-  open func generate(_ type: OptionalType) -> String {
-    return "\(generate(type.wrappedType))?"
+  open func generate(_ type: OptionalType, node: ASTNode) -> String {
+    let tokens = _tokenizer.tokenize(type, node: node)
+    return _tokenJoiner.join(tokens: tokens)
   }
 
-  open func generate(_ type: ProtocolCompositionType) -> String {
-    return type.protocolTypes.map(generate).joined(separator: " & ")
+  open func generate(_ type: ProtocolCompositionType, node: ASTNode) -> String {
+    let tokens = _tokenizer.tokenize(type, node: node)
+    return _tokenJoiner.join(tokens: tokens)
   }
 
-  open func generate(_ type: SelfType) -> String {
-    return "Self"
+  open func generate(_ type: SelfType, node: ASTNode) -> String {
+    let tokens = _tokenizer.tokenize(type, node: node)
+    return _tokenJoiner.join(tokens: tokens)
   }
 
-  open func generate(_ type: TupleType) -> String {
-    return "(\(type.elements.map(generate).joined(separator: ", ")))"
+  open func generate(_ type: TupleType, node: ASTNode) -> String {
+    let tokens = _tokenizer.tokenize(type, node: node)
+    return _tokenJoiner.join(tokens: tokens)
   }
 
-  open func generate(_ type: TupleType.Element) -> String {
-    let attr = type.attributes.isEmpty ? "" : "\(generate(type.attributes)) "
-    let inoutStr = type.isInOutParameter ? "inout " : ""
-    var nameStr = ""
-    if let name = type.name {
-      nameStr = "\(name): "
-    }
-    return "\(nameStr)\(attr)\(inoutStr)\(generate(type.type))"
+  open func generate(_ type: TupleType.Element, node: ASTNode) -> String {
+    let tokens = _tokenizer.tokenize(type, node: node)
+    return _tokenJoiner.join(tokens: tokens)
   }
 
-  open func generate(_ type: TypeAnnotation) -> String {
-    let attr = type.attributes.isEmpty ? "" : "\(generate(type.attributes)) "
-    let inoutStr = type.isInOutParameter ? "inout " : ""
-    return ": \(attr)\(inoutStr)\(generate(type.type))"
+  open func generate(_ type: TypeAnnotation, node: ASTNode) -> String {
+    let tokens = _tokenizer.tokenize(type, node: node)
+    return _tokenJoiner.join(tokens: tokens)
   }
 
-  open func generate(_ type: TypeIdentifier) -> String {
-    return type.names
-    .map({ "\($0.name)\($0.genericArgumentClause.map(generate) ?? "")" })
-    .joined(separator: ".")
+  open func generate(_ type: TypeIdentifier, node: ASTNode) -> String {
+    let tokens = _tokenizer.tokenize(type, node: node)
+    return _tokenJoiner.join(tokens: tokens)
   }
 
-  open func generate(_ type: TypeInheritanceClause) -> String {
-    var prefixText = ": "
-    if type.classRequirement {
-      prefixText += "class"
-    }
-    if type.classRequirement && !type.typeInheritanceList.isEmpty {
-      prefixText += ", "
-    }
-    return "\(prefixText)\(type.typeInheritanceList.map(generate).joined(separator: ", "))"
+  open func generate(_ type: TypeInheritanceClause, node: ASTNode) -> String {
+    let tokens = _tokenizer.tokenize(type, node: node)
+    return _tokenJoiner.join(tokens: tokens)
   }
 }

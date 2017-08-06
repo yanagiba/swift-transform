@@ -17,37 +17,28 @@
 import AST
 
 extension Generator {
-  open func generate(_ parameter: GenericParameterClause.GenericParameter) -> String {
-    switch parameter {
-    case let .identifier(t):
-      return t
-    case let .typeConformance(t, typeIdentifier):
-      return "\(t): \(generate(typeIdentifier))"
-    case let .protocolConformance(t, protocolCompositionType):
-      return "\(t): \(generate(protocolCompositionType))"
-    }
+  open func generate(_ parameter: GenericParameterClause.GenericParameter, node: ASTNode) -> String {
+    let tokens = _tokenizer.tokenize(parameter, node: node)
+    return _tokenJoiner.join(tokens: tokens)
   }
 
-  open func generate(_ clause: GenericParameterClause) -> String {
-    return "<\(clause.parameterList.map(generate).joined(separator: ", "))>"
+  open func generate(_ clause: GenericParameterClause, node: ASTNode) -> String {
+    let tokens = _tokenizer.tokenize(clause, node: node)
+    return _tokenJoiner.join(tokens: tokens)
   }
 
-  open func generate(_ clause: GenericWhereClause.Requirement) -> String {
-    switch clause {
-    case let .sameType(t, type):
-      return "\(generate(t)) == \(generate(type))"
-    case let .typeConformance(t, typeIdentifier):
-      return "\(t.textDescription): \(typeIdentifier.textDescription)"
-    case let .protocolConformance(t, protocolCompositionType):
-      return "\(t.textDescription): \(protocolCompositionType.textDescription)"
-    }
+  open func generate(_ clause: GenericWhereClause.Requirement, node: ASTNode) -> String {
+    let tokens = _tokenizer.tokenize(clause, node: node)
+    return _tokenJoiner.join(tokens: tokens)
   }
 
-  open func generate(_ clause: GenericWhereClause) -> String {
-    return "where \(clause.requirementList.map(generate).joined(separator: ", "))"
+  open func generate(_ clause: GenericWhereClause, node: ASTNode) -> String {
+    let tokens = _tokenizer.tokenize(clause, node: node)
+    return _tokenJoiner.join(tokens: tokens)
   }
 
-  open func generate(_ clause: GenericArgumentClause) -> String {
-    return "<\(clause.argumentList.map(generate).joined(separator: ", "))>"
+  open func generate(_ clause: GenericArgumentClause, node: ASTNode) -> String {
+    let tokens = _tokenizer.tokenize(clause, node: node)
+    return _tokenJoiner.join(tokens: tokens)
   }
 }

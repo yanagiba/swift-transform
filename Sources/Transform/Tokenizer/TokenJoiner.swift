@@ -14,20 +14,14 @@
    limitations under the License.
 */
 
-import AST
-
-open class Generator {
+open class TokenJoiner {
   let _options: [String: Any]?
-  let _tokenizer: Tokenizer
-  let _tokenJoiner: TokenJoiner
 
-  public init(
-    options: [String: Any]? = nil,
-    tokenizer: Tokenizer = Tokenizer(),
-    tokenJoiner: TokenJoiner = TokenJoiner())
-  {
+  public init(options: [String: Any]? = nil) {
     _options = options
-    _tokenizer = tokenizer
-    _tokenJoiner = tokenJoiner
+  }
+
+  open func join(tokens: [Token]) -> String {
+    return tokens.joinedValues()
   }
 }

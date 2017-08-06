@@ -119,7 +119,7 @@ extension Generator {
   }
 
   open func generate(_ patternInitializer: PatternInitializer) -> String {
-    let pttrnText = generate(patternInitializer.pattern)
+    let pttrnText = generate(patternInitializer.pattern, node: WildcardExpression())
     guard let initExpr = patternInitializer.initializerExpression else {
       return pttrnText
     }
@@ -144,9 +144,9 @@ extension Generator {
     let modifierText = declaration.accessLevelModifier.map({ "\(generate($0)) " }) ?? ""
     let finalText = declaration.isFinal ? "final " : ""
     let headText = "\(attrsText)\(modifierText)\(finalText)class \(declaration.name)"
-    let genericParameterClauseText = declaration.genericParameterClause.map(generate) ?? ""
-    let typeText = declaration.typeInheritanceClause.map(generate) ?? ""
-    let whereText = declaration.genericWhereClause.map({ " \(generate($0))" }) ?? ""
+    let genericParameterClauseText = declaration.genericParameterClause.map({ generate($0, node: declaration) }) ?? ""
+    let typeText = declaration.typeInheritanceClause.map({ generate($0, node: declaration) }) ?? ""
+    let whereText = declaration.genericWhereClause.map({ " \(generate($0, node: declaration))" }) ?? ""
     let neckText = "\(genericParameterClauseText)\(typeText)\(whereText)"
     let membersText = declaration.members.map(generate).joined(separator: "\n")
     let memberText = declaration.members.isEmpty ? "" : "\n\(membersText.indent)\n"
@@ -180,7 +180,7 @@ extension Generator {
   open func generate(_ union: EnumDeclaration.UnionStyleEnumCase) -> String {
     let attrsText = union.attributes.isEmpty ? "" : "\(generate(union.attributes)) "
     let indirectText = union.isIndirect ? "indirect " : ""
-    let casesText = union.cases.map({ "\($0.name)\($0.tuple.map(generate) ?? "")" }).joined(separator: ", ")
+    let casesText = union.cases.map({ "\($0.name)\($0.tuple.map({ generate($0, node: WildcardExpression()) }) ?? "")" }).joined(separator: ", ")
     return "\(attrsText)\(indirectText)case \(casesText)"
   }
 
@@ -212,9 +212,9 @@ extension Generator {
     let modifierText = declaration.accessLevelModifier.map({ "\(generate($0)) " }) ?? ""
     let indirectText = declaration.isIndirect ? "indirect " : ""
     let headText = "\(attrsText)\(modifierText)\(indirectText)enum \(declaration.name)"
-    let genericParameterClauseText = declaration.genericParameterClause.map(generate) ?? ""
-    let typeText = declaration.typeInheritanceClause.map(generate) ?? ""
-    let whereText = declaration.genericWhereClause.map({ " \(generate($0))" }) ?? ""
+    let genericParameterClauseText = declaration.genericParameterClause.map({ generate($0, node: declaration) }) ?? ""
+    let typeText = declaration.typeInheritanceClause.map({ generate($0, node: declaration) }) ?? ""
+    let whereText = declaration.genericWhereClause.map({ " \(generate($0, node: declaration))" }) ?? ""
     let neckText = "\(genericParameterClauseText)\(typeText)\(whereText)"
     let membersText = declaration.members.map(generate).joined(separator: "\n")
     let memberText = declaration.members.isEmpty ? "" : "\n\(membersText.indent)\n"
@@ -233,9 +233,9 @@ extension Generator {
   open func generate(_ declaration: ExtensionDeclaration) -> String {
     let attrsText = declaration.attributes.isEmpty ? "" : "\(generate(declaration.attributes)) "
     let modifierText = declaration.accessLevelModifier.map({ "\(generate($0)) " }) ?? ""
-    let headText = "\(attrsText)\(modifierText)extension \(generate(declaration.type))"
-    let typeInheritanceText = declaration.typeInheritanceClause.map(generate) ?? ""
-    let whereText = declaration.genericWhereClause.map({ " \(generate($0))" }) ?? ""
+    let headText = "\(attrsText)\(modifierText)extension \(generate(declaration.type, node: declaration))"
+    let typeInheritanceText = declaration.typeInheritanceClause.map({ generate($0, node: declaration) }) ?? ""
+    let whereText = declaration.genericWhereClause.map({ " \(generate($0, node: declaration))" }) ?? ""
     let neckText = "\(typeInheritanceText)\(whereText)"
     let membersText = declaration.members.map(generate).joined(separator: "\n")
     let memberText = declaration.members.isEmpty ? "" : "\n\(membersText.indent)\n"
@@ -246,9 +246,9 @@ extension Generator {
     let attrsText = declaration.attributes.isEmpty ? "" : "\(generate(declaration.attributes)) "
     let modifiersText = declaration.modifiers.isEmpty ? "" : "\(generate(declaration.modifiers)) "
     let headText = "\(attrsText)\(modifiersText)func"
-    let genericParamText = declaration.genericParameterClause.map(generate) ?? ""
+    let genericParamText = declaration.genericParameterClause.map({ generate($0, node: declaration) }) ?? ""
     let signatureText = generate(declaration.signature)
-    let genericWhereText = declaration.genericWhereClause.map({ " \(generate($0))" }) ?? ""
+    let genericWhereText = declaration.genericWhereClause.map({ " \(generate($0, node: declaration))" }) ?? ""
     let bodyText = declaration.body.map({ " \(generate($0))" }) ?? ""
     return "\(headText) \(declaration.name)\(genericParamText)\(signatureText)\(genericWhereText)\(bodyText)"
   }
@@ -257,7 +257,7 @@ extension Generator {
     let externalNameText = parameter.externalName.map({ [$0] }) ?? []
     let localNameText = parameter.localName.isEmpty ? [] : [parameter.localName]
     let nameText = (externalNameText + localNameText).joined(separator: " ")
-    let typeAnnoText = generate(parameter.typeAnnotation)
+    let typeAnnoText = generate(parameter.typeAnnotation, node: WildcardExpression())
     let defaultText = parameter.defaultArgumentClause.map({ " = \(generate($0))" }) ?? ""
     let varargsText = parameter.isVarargs ? "..." : ""
     return "\(nameText)\(typeAnnoText)\(defaultText)\(varargsText)"
@@ -271,7 +271,7 @@ extension Generator {
   }
 
   open func generate(_ result: FunctionResult) -> String {
-    let typeText = generate(result.type)
+    let typeText = generate(result.type, node: WildcardExpression())
     if result.attributes.isEmpty {
       return "-> \(typeText)"
     }
@@ -289,10 +289,10 @@ extension Generator {
     let attrsText = declaration.attributes.isEmpty ? "" : "\(generate(declaration.attributes)) "
     let modifiersText = declaration.modifiers.isEmpty ? "" : "\(generate(declaration.modifiers)) "
     let headText = "\(attrsText)\(modifiersText)init\(generate(declaration.kind))"
-    let genericParamText = declaration.genericParameterClause.map(generate) ?? ""
+    let genericParamText = declaration.genericParameterClause.map({ generate($0, node: declaration) }) ?? ""
     let parameterText = "(\(declaration.parameterList.map(generate).joined(separator: ", ")))"
     let throwsKindText = generate(declaration.throwsKind).isEmpty ? "" : " \(generate(declaration.throwsKind))"
-    let genericWhereText = declaration.genericWhereClause.map({ " \(generate($0))" }) ?? ""
+    let genericWhereText = declaration.genericWhereClause.map({ " \(generate($0, node: declaration))" }) ?? ""
     let bodyText = generate(declaration.body)
     return "\(headText)\(genericParamText)\(parameterText)\(throwsKindText)\(genericWhereText) \(bodyText)"
   }
@@ -349,7 +349,7 @@ extension Generator {
     let attrsText = declaration.attributes.isEmpty ? "" : "\(generate(declaration.attributes)) "
     let modifierText = declaration.accessLevelModifier.map({ "\(generate($0)) " }) ?? ""
     let headText = "\(attrsText)\(modifierText)protocol \(declaration.name)"
-    let typeText = declaration.typeInheritanceClause.map(generate) ?? ""
+    let typeText = declaration.typeInheritanceClause.map({ generate($0, node: declaration) }) ?? ""
     let membersText = declaration.members.map(generate).joined(separator: "\n")
     let memberText = declaration.members.isEmpty ? "" : "\n\(membersText.indent)\n"
     return "\(headText)\(typeText) {\(memberText)}"
@@ -383,9 +383,9 @@ extension Generator {
     let attrsText = member.attributes.isEmpty ? "" : "\(generate(member.attributes)) "
     let modifiersText = member.modifiers.isEmpty ? "" : "\(generate(member.modifiers)) "
     let headText = "\(attrsText)\(modifiersText)func"
-    let genericParameterClauseText = member.genericParameter.map(generate) ?? ""
+    let genericParameterClauseText = member.genericParameter.map({ generate($0, node: WildcardExpression()) }) ?? ""
     let signatureText = generate(member.signature)
-    let genericWhereClauseText = member.genericWhere.map({ " \(generate($0))" }) ?? ""
+    let genericWhereClauseText = member.genericWhere.map({ " \(generate($0, node: WildcardExpression()))" }) ?? ""
     return "\(headText) \(member.name)\(genericParameterClauseText)\(signatureText)\(genericWhereClauseText)"
   }
 
@@ -393,24 +393,24 @@ extension Generator {
     let attrsText = member.attributes.isEmpty ? "" : "\(generate(member.attributes)) "
     let modifiersText = member.modifiers.isEmpty ? "" : "\(generate(member.modifiers)) "
     let headText = "\(attrsText)\(modifiersText)init\(generate(member.kind))"
-    let genericParameterClauseText = member.genericParameter.map(generate) ?? ""
+    let genericParameterClauseText = member.genericParameter.map({ generate($0, node: WildcardExpression()) }) ?? ""
     let parameterText = "(\(member.parameterList.map(generate).joined(separator: ", ")))"
     let throwsKindText = generate(member.throwsKind).isEmpty ? "" : " \(generate(member.throwsKind))"
-    let genericWhereClauseText = member.genericWhere.map({ " \(generate($0))" }) ?? ""
+    let genericWhereClauseText = member.genericWhere.map({ " \(generate($0, node: WildcardExpression()))" }) ?? ""
     return "\(headText)\(genericParameterClauseText)\(parameterText)\(throwsKindText)\(genericWhereClauseText)"
   }
 
   open func generate(_ member: ProtocolDeclaration.SubscriptMember) -> String {
     let attrsText = member.attributes.isEmpty ? "" : "\(generate(member.attributes)) "
     let modifiersText = member.modifiers.isEmpty ? "" : "\(generate(member.modifiers)) "
-    let genericParamClauseText = member.genericParameter.map(generate) ?? ""
+    let genericParamClauseText = member.genericParameter.map({ generate($0, node: WildcardExpression()) }) ?? ""
     let parameterText = "(\(member.parameterList.map(generate).joined(separator: ", ")))"
     let headText = "\(attrsText)\(modifiersText)subscript\(genericParamClauseText)\(parameterText)"
 
     let resultAttrsText = member.resultAttributes.isEmpty ? "" : "\(generate(member.resultAttributes)) "
-    let resultText = "-> \(resultAttrsText)\(generate(member.resultType))"
+    let resultText = "-> \(resultAttrsText)\(generate(member.resultType, node: WildcardExpression()))"
 
-    let genericWhereClauseText = member.genericWhere.map({ " \(generate($0))" }) ?? ""
+    let genericWhereClauseText = member.genericWhere.map({ " \(generate($0, node: WildcardExpression()))" }) ?? ""
 
     return "\(headText) \(resultText)\(genericWhereClauseText) \(generate(member.getterSetterKeywordBlock))"
   }
@@ -418,9 +418,9 @@ extension Generator {
   open func generate(_ member: ProtocolDeclaration.AssociativityTypeMember) -> String {
     let attrsText = member.attributes.isEmpty ? "" : "\(generate(member.attributes)) "
     let modifierText = member.accessLevelModifier.map({ "\(generate($0)) " }) ?? ""
-    let typeText = member.typeInheritance.map(generate) ?? ""
-    let assignmentText = member.assignmentType.map({ " = \(generate($0))" }) ?? ""
-    let genericWhereText = member.genericWhere.map({ " \(generate($0))" }) ?? ""
+    let typeText = member.typeInheritance.map({ generate($0, node: WildcardExpression()) }) ?? ""
+    let assignmentText = member.assignmentType.map({ " = \(generate($0, node: WildcardExpression()))" }) ?? ""
+    let genericWhereText = member.genericWhere.map({ " \(generate($0, node: WildcardExpression()))" }) ?? ""
     return "\(attrsText)\(modifierText)associatedtype \(member.name)\(typeText)\(assignmentText)\(genericWhereText)"
   }
 
@@ -428,9 +428,9 @@ extension Generator {
     let attrsText = declaration.attributes.isEmpty ? "" : "\(generate(declaration.attributes)) "
     let modifierText = declaration.accessLevelModifier.map({ "\(generate($0)) " }) ?? ""
     let headText = "\(attrsText)\(modifierText)struct \(declaration.name)"
-    let genericParameterClauseText = declaration.genericParameterClause.map(generate) ?? ""
-    let typeText = declaration.typeInheritanceClause.map(generate) ?? ""
-    let whereText = declaration.genericWhereClause.map({ " \(generate($0))" }) ?? ""
+    let genericParameterClauseText = declaration.genericParameterClause.map({ generate($0, node: declaration) }) ?? ""
+    let typeText = declaration.typeInheritanceClause.map({ generate($0, node: declaration) }) ?? ""
+    let whereText = declaration.genericWhereClause.map({ " \(generate($0, node: declaration))" }) ?? ""
     let neckText = "\(genericParameterClauseText)\(typeText)\(whereText)"
     let membersText = declaration.members.map(generate).joined(separator: "\n")
     let memberText = declaration.members.isEmpty ? "" : "\n\(membersText.indent)\n"
@@ -449,14 +449,14 @@ extension Generator {
   open func generate(_ declaration: SubscriptDeclaration) -> String {
     let attrsText = declaration.attributes.isEmpty ? "" : "\(generate(declaration.attributes)) "
     let modifiersText = declaration.modifiers.isEmpty ? "" : "\(generate(declaration.modifiers)) "
-    let genericParamClauseText = declaration.genericParameterClause.map(generate) ?? ""
-    let parameterText = "(\(declaration.parameterList.map(generate).joined(separator: ", ")))"
+    let genericParamClauseText = declaration.genericParameterClause.map({ generate($0, node: declaration) }) ?? ""
+    let parameterText = "(\(declaration.parameterList.map({ generate($0) }).joined(separator: ", ")))"
     let headText = "\(attrsText)\(modifiersText)subscript\(genericParamClauseText)\(parameterText)"
 
     let resultAttrsText = declaration.resultAttributes.isEmpty ? "" : "\(generate(declaration.resultAttributes)) "
-    let resultText = "-> \(resultAttrsText)\(generate(declaration.resultType))"
+    let resultText = "-> \(resultAttrsText)\(generate(declaration.resultType, node: declaration))"
 
-    let genericWhereClauseText = declaration.genericWhereClause.map({ " \(generate($0))" }) ?? ""
+    let genericWhereClauseText = declaration.genericWhereClause.map({ " \(generate($0, node: declaration))" }) ?? ""
 
     return "\(headText) \(resultText)\(genericWhereClauseText) \(generate(declaration.body))"
   }
@@ -475,8 +475,8 @@ extension Generator {
   open func generate(_ declaration: TypealiasDeclaration) -> String {
     let attrsText = declaration.attributes.isEmpty ? "" : "\(generate(declaration.attributes)) "
     let modifierText = declaration.accessLevelModifier.map({ "\(generate($0)) " }) ?? ""
-    let genericText = declaration.generic.map(generate) ?? ""
-    let assignmentText = generate(declaration.assignment)
+    let genericText = declaration.generic.map({ generate($0, node: declaration) }) ?? ""
+    let assignmentText = generate(declaration.assignment, node: declaration)
     return "\(attrsText)\(modifierText)typealias \(declaration.name)\(genericText) = \(assignmentText)"
   }
 
@@ -497,14 +497,14 @@ extension Generator {
     case let .getterSetterKeywordBlock(name, typeAnnotation, block):
       return "\(name)\(typeAnnotation) \(generate(block))"
     case let .willSetDidSetBlock(name, typeAnnotation, initExpr, block):
-      let typeAnnoStr = typeAnnotation.map(generate) ?? ""
+      let typeAnnoStr = typeAnnotation.map({ generate($0, node: WildcardExpression()) }) ?? ""
       let initStr = initExpr.map({ " = \(generate($0))" }) ?? ""
       return "\(name)\(typeAnnoStr)\(initStr) \(generate(block))"
     }
   }
 
   open func generate(_ modifiers: [DeclarationModifier]) -> String {
-    return modifiers.map(generate).joined(separator: " ")
+    return modifiers.map({ generate($0) }).joined(separator: " ")
   }
 
   open func generate(_ modifier: DeclarationModifier) -> String {
