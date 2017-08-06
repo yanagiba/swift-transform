@@ -1,23 +1,23 @@
 /*
- Copyright 2017 Ryuichi Laboratories and the Yanagiba project contributors
- 
- Licensed under the Apache License, Version 2.0 (the "License");
- you may not use this file except in compliance with the License.
- You may obtain a copy of the License at
- 
- http://www.apache.org/licenses/LICENSE-2.0
- 
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
- */
+   Copyright 2017 Ryuichi Laboratories and the Yanagiba project contributors
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 
 import AST
 
 extension Tokenizer {
-    
+
     open func tokenize(_ pattern: Pattern, node: ASTNode) -> [Token] {
         switch pattern {
         case let pattern as EnumCasePattern:
@@ -40,7 +40,7 @@ extension Tokenizer {
             return [node.newToken(.identifier, pattern.textDescription)]
         }
     }
-    
+
     open func tokenize(_ pattern: EnumCasePattern, node: ASTNode) -> [Token] {
         return
             pattern.typeIdentifier.map { tokenize($0, node: node) } +
@@ -48,17 +48,17 @@ extension Tokenizer {
             pattern.newToken(.identifier, pattern.name, node) +
             pattern.tuplePattern.map { tokenize($0, node: node) }
     }
-    
+
     open func tokenize(_ pattern: ExpressionPattern) -> [Token] {
         return tokenize(pattern.expression)
     }
-    
+
     open func tokenize(_ pattern: IdentifierPattern, node: ASTNode) -> [Token] {
         return
             pattern.newToken(.identifier, pattern.identifier, node) +
             pattern.typeAnnotation.map { tokenize($0, node: node) }
     }
-    
+
     open func tokenize(_ pattern: OptionalPattern, node: ASTNode) -> [Token] {
         switch pattern.kind {
         case .identifier(let idPttrn):
@@ -71,7 +71,7 @@ extension Tokenizer {
             return tokenize(tuplePttrn, node: node) + pattern.newToken(.symbol, "?", node)
         }
     }
-    
+
     open func tokenize(_ pattern: TuplePattern, node: ASTNode) -> [Token] {
         return
             pattern.newToken(.startOfScope, "(", node) +
@@ -79,7 +79,7 @@ extension Tokenizer {
             pattern.newToken(.endOfScope, ")", node) +
             pattern.typeAnnotation.map { tokenize($0, node: node) }
     }
-    
+
     open func tokenize(_ element: TuplePattern.Element, node: ASTNode) -> [Token] {
         switch element {
         case .pattern(let pattern):
@@ -90,7 +90,7 @@ extension Tokenizer {
                 tokenize(pattern, node: node)
         }
     }
-    
+
     open func tokenize(_ pattern: TypeCastingPattern, node: ASTNode) -> [Token] {
         switch pattern.kind {
         case .is(let type):
@@ -105,7 +105,7 @@ extension Tokenizer {
             tokenize(type, node: node)
         }
     }
-    
+
     open func tokenize(_ pattern: ValueBindingPattern, node: ASTNode) -> [Token] {
         switch pattern.kind {
         case .var(let p):
@@ -118,12 +118,12 @@ extension Tokenizer {
                 tokenize(p, node: node)
         }
     }
-    
+
     open func tokenize(_ pattern: WildcardPattern, node: ASTNode) -> [Token] {
         return pattern.newToken(.keyword, "_", node) +
             pattern.typeAnnotation.map { tokenize($0, node: node) }
     }
-    
+
     // TODO: Delete temporal generates
     open func generate(_ pattern: Pattern, node: ASTNode) -> String {
         return tokenize(pattern, node: node).joinedValues()

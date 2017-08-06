@@ -1,18 +1,18 @@
 /*
- Copyright 2017 Ryuichi Laboratories and the Yanagiba project contributors
- 
- Licensed under the Apache License, Version 2.0 (the "License");
- you may not use this file except in compliance with the License.
- You may obtain a copy of the License at
- 
- http://www.apache.org/licenses/LICENSE-2.0
- 
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
- */
+   Copyright 2017 Ryuichi Laboratories and the Yanagiba project contributors
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 
 import AST
 
@@ -57,14 +57,14 @@ extension Tokenizer {
             return [node.newToken(.identifier, statement.textDescription)]
         }
     }
-    
+
     open func tokenize(_ statement: BreakStatement) -> [Token] {
         return [
             [statement.newToken(.keyword, "break")],
             statement.labelName.map { [statement.newToken(.identifier, $0)] } ?? []
         ].joined(token: statement.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ statement: CompilerControlStatement) -> [Token] {
         switch statement.kind {
         case .if(let condition):
@@ -88,21 +88,21 @@ extension Tokenizer {
                 [statement.newToken(.endOfScope, ")")]
         }
     }
-    
+
     open func tokenize(_ statement: ContinueStatement) -> [Token] {
         return [
             [statement.newToken(.keyword, "continue")],
             statement.labelName.map { [statement.newToken(.identifier, $0)] } ?? []
         ].joined(token: statement.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ statement: DeferStatement) -> [Token] {
         return [
             [statement.newToken(.keyword, "defer")],
             tokenize(statement.codeBlock)
         ].joined(token: statement.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ statement: DoStatement) -> [Token] {
         return [
             [statement.newToken(.keyword, "do")],
@@ -110,11 +110,11 @@ extension Tokenizer {
             tokenize(statement.catchClauses, node: statement)
         ].joined(token: statement.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ statements: [DoStatement.CatchClause], node: ASTNode) -> [Token] {
         return statements.map { tokenize($0, node: node) }.joined(token: node.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ statement: DoStatement.CatchClause, node: ASTNode) -> [Token] {
         return [
             [statement.newToken(.keyword, "catch", node)],
@@ -124,11 +124,11 @@ extension Tokenizer {
             tokenize(statement.codeBlock)
         ].joined(token: statement.newToken(.space, " ", node))
     }
-    
+
     open func tokenize(_ statement: FallthroughStatement) -> [Token] {
         return [statement.newToken(.keyword, "fallthrough")]
     }
-    
+
     open func tokenize(_ statement: ForInStatement) -> [Token] {
         return [
             [statement.newToken(.keyword, "for")],
@@ -141,7 +141,7 @@ extension Tokenizer {
             tokenize(statement.codeBlock)
         ].joined(token: statement.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ statement: GuardStatement) -> [Token] {
         return [
             [statement.newToken(.keyword, "guard")],
@@ -150,7 +150,7 @@ extension Tokenizer {
             tokenize(statement.codeBlock)
         ].joined(token: statement.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ statement: IfStatement) -> [Token] {
         return [
             [statement.newToken(.keyword, "if")],
@@ -159,7 +159,7 @@ extension Tokenizer {
             statement.elseClause.map { tokenize($0, node: statement) } ?? []
         ].joined(token: statement.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ statement: IfStatement.ElseClause, node: ASTNode) -> [Token] {
         var blockTokens = [Token]()
         switch statement {
@@ -173,14 +173,14 @@ extension Tokenizer {
             blockTokens
         ].joined(token: statement.newToken(.space, " ", node))
     }
-    
+
     open func tokenize(_ statement: LabeledStatement) -> [Token] {
         return
             statement.newToken(.identifier, statement.labelName, statement) +
             statement.newToken(.delimiter, ": ") +
             tokenize(statement.statement, node: statement)
     }
-    
+
     open func tokenize(_ statement: RepeatWhileStatement) -> [Token] {
         return [
             [statement.newToken(.keyword, "repeat")],
@@ -189,14 +189,14 @@ extension Tokenizer {
             tokenize(statement.conditionExpression),
         ].joined(token: statement.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ statement: ReturnStatement) -> [Token] {
         return [
             [statement.newToken(.keyword, "return")],
             statement.expression.map { tokenize($0) } ?? []
         ].joined(token: statement.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ statement: SwitchStatement) -> [Token] {
         var casesTokens = statement.newToken(.startOfScope, "{") + statement.newToken(.endOfScope, "}")
         if !statement.cases.isEmpty {
@@ -206,14 +206,14 @@ extension Tokenizer {
                 [statement.newToken(.endOfScope, "}")]
             ].joined(token: statement.newToken(.linebreak, "\n"))
         }
-        
+
         return [
             [statement.newToken(.keyword, "switch")],
             tokenize(statement.expression),
             casesTokens
-        ].joined(token: statement.newToken(.space, " "))        
+        ].joined(token: statement.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ statement: SwitchStatement.Case, node: ASTNode) -> [Token] {
         switch statement {
         case let .case(itemList, stmts):
@@ -225,7 +225,7 @@ extension Tokenizer {
                 indent(
                     statement.newToken(.linebreak, "\n", node) +
                     tokenize(stmts, node: node))
-            
+
         case .default(let stmts):
             return
                 statement.newToken(.keyword, "default", node) +
@@ -235,7 +235,7 @@ extension Tokenizer {
                     tokenize(stmts, node: node))
         }
     }
-    
+
     open func tokenize(_ statement: SwitchStatement.Case.Item, node: ASTNode) -> [Token] {
         return [
             tokenize(statement.pattern, node: node),
@@ -243,14 +243,14 @@ extension Tokenizer {
             statement.whereExpression.map { tokenize($0, node: node) } ?? []
         ].joined(token: statement.newToken(.space, " ", node))
     }
-    
+
     open func tokenize(_ statement: ThrowStatement) -> [Token] {
         return
             statement.newToken(.keyword, "throw") +
             statement.newToken(.space, " ") +
             tokenize(statement.expression)
     }
-    
+
     open func tokenize(_ statement: WhileStatement) -> [Token] {
         return [
             [statement.newToken(.keyword, "while")],
@@ -258,17 +258,17 @@ extension Tokenizer {
             tokenize(statement.codeBlock)
         ].joined(token: statement.newToken(.space, " "))
     }
-    
+
     // MARK: Utils
-    
+
     open func tokenize(_ statements: [Statement], node: ASTNode) -> [Token] {
         return statements.map { tokenize($0, node: node) }.joined(token: node.newToken(.linebreak, "\n"))
     }
-    
+
     open func tokenize(_ conditions: ConditionList, node: ASTNode) -> [Token] {
         return conditions.map { tokenize($0, node: node) }.joined(token: node.newToken(.delimiter, ", "))
     }
-    
+
     open func tokenize(_ condition: Condition, node: ASTNode) -> [Token] {
         switch condition {
         case .expression(let expr):
@@ -298,7 +298,7 @@ extension Tokenizer {
             ].joined(token: condition.newToken(.space, " ", node))
         }
     }
-    
+
     open func tokenize(_ condition:  AvailabilityCondition, node: ASTNode) -> [Token] {
         return
             condition.newToken(.keyword, "#available", node) +
@@ -306,12 +306,12 @@ extension Tokenizer {
             condition.arguments.map { tokenize($0, node: node) }.joined(token: condition.newToken(.delimiter, ", ", node)) +
             condition.newToken(.endOfScope, ")", node)
     }
-    
+
     open func tokenize(_ argument: AvailabilityCondition.Argument, node: ASTNode) -> [Token] {
         return [argument.newToken(.identifier, argument.textDescription, node)]
     }
-    
-    
+
+
     // TODO: Delete temporal generates
     open func generate(_ statement: Statement, node: ASTNode) -> String {
         return tokenize(statement, node: node).joinedValues()
