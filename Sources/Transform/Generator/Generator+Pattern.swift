@@ -65,11 +65,6 @@ extension Generator {
     return _tokenJoiner.join(tokens: tokens)
   }
 
-  open func generate(_ pattern: TuplePattern.Element, node: ASTNode) -> String {
-    let tokens = _tokenizer.tokenize(pattern, node: node)
-    return _tokenJoiner.join(tokens: tokens)
-  }
-
   open func generate(_ pattern: TypeCastingPattern, node: ASTNode) -> String {
     let tokens = _tokenizer.tokenize(pattern, node: node)
     return _tokenJoiner.join(tokens: tokens)

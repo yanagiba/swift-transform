@@ -17,17 +17,7 @@
 import AST
 
 extension Generator {
-  open func generate(_ parameter: GenericParameterClause.GenericParameter, node: ASTNode) -> String {
-    let tokens = _tokenizer.tokenize(parameter, node: node)
-    return _tokenJoiner.join(tokens: tokens)
-  }
-
   open func generate(_ clause: GenericParameterClause, node: ASTNode) -> String {
-    let tokens = _tokenizer.tokenize(clause, node: node)
-    return _tokenJoiner.join(tokens: tokens)
-  }
-
-  open func generate(_ clause: GenericWhereClause.Requirement, node: ASTNode) -> String {
     let tokens = _tokenizer.tokenize(clause, node: node)
     return _tokenJoiner.join(tokens: tokens)
   }

@@ -66,11 +66,6 @@ extension Generator {
     return _tokenJoiner.join(tokens: tokens)
   }
 
-  open func generate(_ type: FunctionType.Argument, node: ASTNode) -> String {
-    let tokens = _tokenizer.tokenize(type, node: node)
-    return _tokenJoiner.join(tokens: tokens)
-  }
-
   open func generate(_ type: ImplicitlyUnwrappedOptionalType, node: ASTNode) -> String {
     let tokens = _tokenizer.tokenize(type, node: node)
     return _tokenJoiner.join(tokens: tokens)
