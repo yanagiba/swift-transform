@@ -101,7 +101,7 @@ for sourceFile in sourceFiles {
     } else {
       var originalFilePath = sourceFile.identifier
       let commonPrefixIndex = originalFilePath.index(originalFilePath.startIndex, offsetBy: commonPathPrefix.count)
-      originalFilePath = originalFilePath.substring(from: commonPrefixIndex)
+      originalFilePath = String(originalFilePath[commonPrefixIndex...])
       let filePath = commonPathPrefix + outputPath + "/" + originalFilePath
       outputHandle = filePath.fileHandle
     }
