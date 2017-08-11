@@ -18,220 +18,222 @@ import AST
 
 extension Tokenizer {
     
-    // TODO: Review
     open func tokenize(_ expression: Expression) -> [Token] {
-        return [expression.newToken(.identifier, generate(expression))]
-    }
-    open func generate(_ expression: Expression) -> String {
         switch expression {
         case let expr as AssignmentOperatorExpression:
-            return generate(expr)
+            return tokenize(expr)
         case let expr as BinaryOperatorExpression:
-            return generate(expr)
+            return tokenize(expr)
         case let expr as ClosureExpression:
-            return generate(expr)
+            return tokenize(expr)
         case let expr as ExplicitMemberExpression:
-            return generate(expr)
+            return tokenize(expr)
         case let expr as ForcedValueExpression:
-            return generate(expr)
+            return tokenize(expr)
         case let expr as FunctionCallExpression:
-            return generate(expr)
+            return tokenize(expr)
         case let expr as IdentifierExpression:
-            return generate(expr)
+            return tokenize(expr)
         case let expr as ImplicitMemberExpression:
-            return generate(expr)
+            return tokenize(expr)
         case let expr as InOutExpression:
-            return generate(expr)
+            return tokenize(expr)
         case let expr as InitializerExpression:
-            return generate(expr)
+            return tokenize(expr)
         case let expr as KeyPathStringExpression:
-            return generate(expr)
+            return tokenize(expr)
         case let expr as LiteralExpression:
-            return generate(expr)
+            return tokenize(expr)
         case let expr as OptionalChainingExpression:
-            return generate(expr)
+            return tokenize(expr)
         case let expr as ParenthesizedExpression:
-            return generate(expr)
+            return tokenize(expr)
         case let expr as PostfixOperatorExpression:
-            return generate(expr)
+            return tokenize(expr)
         case let expr as PostfixSelfExpression:
-            return generate(expr)
+            return tokenize(expr)
         case let expr as PrefixOperatorExpression:
-            return generate(expr)
+            return tokenize(expr)
         case let expr as SelectorExpression:
-            return generate(expr)
+            return tokenize(expr)
         case let expr as SelfExpression:
-            return generate(expr)
+            return tokenize(expr)
         case let expr as SubscriptExpression:
-            return generate(expr)
+            return tokenize(expr)
         case let expr as SuperclassExpression:
-            return generate(expr)
+            return tokenize(expr)
         case let expr as TernaryConditionalOperatorExpression:
-            return generate(expr)
+            return tokenize(expr)
         case let expr as TryOperatorExpression:
-            return generate(expr)
+            return tokenize(expr)
         case let expr as TupleExpression:
-            return generate(expr)
+            return tokenize(expr)
         case let expr as TypeCastingOperatorExpression:
-            return generate(expr)
+            return tokenize(expr)
         case let expr as WildcardExpression:
-            return generate(expr)
+            return tokenize(expr)
         default:
-            return expression.textDescription
+            return [Token(origin: expression as? ASTTokenizable,
+                          node: expression as? ASTNode,
+                          kind: .identifier,
+                          value: expression.textDescription)]
         }
     }
     
-    open func generate(_ expression: AssignmentOperatorExpression) -> String {
-        return "\(generate(expression.leftExpression)) = \(generate(expression.rightExpression))"
+    open func tokenize(_ expression: AssignmentOperatorExpression) -> [Token] {
+        return tokenize(expression.leftExpression) +
+            expression.newToken(.symbol, " = ") +
+            tokenize(expression.rightExpression)
     }
     
-    open func generate(_ expression: BinaryOperatorExpression) -> String {
-        return "\(generate(expression.leftExpression)) \(expression.binaryOperator) \(generate(expression.rightExpression))"
+    open func tokenize(_ expression: BinaryOperatorExpression) -> [Token] {
+        return [
+            tokenize(expression.leftExpression),
+            [expression.newToken(.symbol, expression.binaryOperator)],
+            tokenize(expression.rightExpression)
+        ].joined(token: expression.newToken(.space, " "))
     }
     
-    open func generate(_ expression: ClosureExpression) -> String {
-        var signatureText = ""
-        var stmtsText = ""
-        
-        if let signature = expression.signature {
-            signatureText = " \(generate(signature, node: expression)) in"
-            if expression.statements == nil {
-                stmtsText = " "
-            }
-        }
-        
-        if let stmts = expression.statements {
-            if expression.signature == nil && stmts.count == 1 {
-                stmtsText = " \(generate(stmts, node: expression)) "
-            } else {
-                stmtsText = "\n\(generate(stmts, node: expression).indent)\n"
-            }
-        }
-        
-        return "{\(signatureText)\(stmtsText)}"
+    open func tokenize(_ expression: ClosureExpression) -> [Token] {
+        return [
+            [expression.newToken(.startOfScope, "{")],
+            expression.signature.map { tokenize($0, node: expression) } ?? [],
+            expression.signature.map { [$0.newToken(.keyword, "in", expression)] } ?? [],
+            expression.statements.map { stmts in
+                if expression.signature == nil && stmts.count == 1 {
+                    return tokenize(stmts, node: expression)
+                } else {
+                    return indent(
+                        expression.newToken(.linebreak, "\n") +
+                        tokenize(stmts, node: expression)
+                    ) + expression.newToken(.linebreak, "\n")
+                }
+            } ?? [],
+            [expression.newToken(.endOfScope, "}")],
+        ].joined(token: expression.newToken(.space, " "))
     }
     
-    open func generate(_ expression: ClosureExpression.Signature.CaptureItem.Specifier) -> String {
-        return expression.rawValue
+    open func tokenize(_ expression: ClosureExpression.Signature.CaptureItem, node: ASTNode) -> [Token] {
+        return [
+            expression.specifier.map { tokenize($0, node: node) } ?? [],
+            tokenize(expression.expression)
+        ].joined(token: expression.newToken(.space, " ", node))
     }
     
-    open func generate(_ expression: ClosureExpression.Signature.CaptureItem) -> String {
-        let exprText = generate(expression.expression)
-        guard let specifier = expression.specifier else {
-            return exprText
-        }
-        return "\(generate(specifier)) \(exprText)"
+    open func tokenize(_ expression: ClosureExpression.Signature.CaptureItem.Specifier, node: ASTNode) -> [Token] {
+        return [expression.newToken(.identifier, expression.rawValue, node)]
     }
     
-    open func generate(_ expression: ClosureExpression.Signature.ParameterClause.Parameter, node: ASTNode) -> String {
-        var paramText = expression.name
-        if let typeAnnotation = expression.typeAnnotation {
-            paramText += generate(typeAnnotation, node: node)
-            if expression.isVarargs {
-                paramText += "..."
-            }
-        }
-        return paramText
-    }
-    
-    open func generate(_ expression: ClosureExpression.Signature.ParameterClause, node: ASTNode) -> String {
+    open func tokenize(_ expression: ClosureExpression.Signature.ParameterClause, node: ASTNode) -> [Token] {
         switch expression {
         case .parameterList(let params):
-            return "(\(params.map { generate($0, node: node) }.joined(separator: ", ")))"
+            return expression.newToken(.startOfScope, "(", node) +
+                params.map { tokenize($0, node: node) }.joined(token: expression.newToken(.delimiter, ", ", node)) +
+                expression.newToken(.endOfScope, ")", node)
         case .identifierList(let idList):
-            return idList.textDescription
+            return [expression.newToken(.identifier, idList.textDescription, node)]
         }
     }
     
-    open func generate(_ expression: ClosureExpression.Signature, node: ASTNode) -> String {
-        var signatureText = [String]()
-        if let captureList = expression.captureList {
-            signatureText.append("[\(captureList.map(generate).joined(separator: ", "))]")
-        }
-        if let parameterClause = expression.parameterClause {
-            signatureText.append(generate(parameterClause, node: node))
-        }
-        if expression.canThrow {
-            signatureText.append("throws")
-        }
-        if let funcResult = expression.functionResult {
-            signatureText.append(generate(funcResult, node: node))
-        }
-        return signatureText.joined(separator: " ")
+    open func tokenize(_ expression: ClosureExpression.Signature.ParameterClause.Parameter, node: ASTNode) -> [Token] {
+        return expression.newToken(.identifier, expression.name, node) +
+            expression.typeAnnotation.map { typeAnnotation in
+                return tokenize(typeAnnotation, node: node) +
+                (expression.isVarargs ? typeAnnotation.newToken(.symbol, "...", node) : nil)
+            }
     }
     
-    open func generate(_ expression: ExplicitMemberExpression) -> String {
+    open func tokenize(_ expression: ClosureExpression.Signature, node: ASTNode) -> [Token] {
+        let captureTokens = expression.captureList.map { captureList in
+            return expression.newToken(.startOfScope, "[", node) +
+                captureList.map { tokenize($0, node: node) }.joined(token: expression.newToken(.delimiter, ", ", node)) +
+                expression.newToken(.endOfScope, "]", node)
+        }
+        return [
+            captureTokens ?? [],
+            expression.parameterClause.map { tokenize($0, node: node) } ?? [],
+            (expression.canThrow ? expression.newToken(.keyword, "throws", node) : []),
+            expression.functionResult.map { tokenize($0, node: node) } ?? [],
+        ].joined(token: expression.newToken(.space, " ", node))
+    }
+    
+    open func tokenize(_ expression: ExplicitMemberExpression) -> [Token] {
         switch expression.kind {
         case let .tuple(postfixExpr, index):
-            return "\(generate(postfixExpr)).\(index)"
+            return tokenize(postfixExpr) + expression.newToken(.delimiter, ".") + expression.newToken(.number, "\(index)")
         case let .namedType(postfixExpr, identifier):
-            return "\(generate(postfixExpr)).\(identifier)"
+            return tokenize(postfixExpr) + expression.newToken(.delimiter, ".") + expression.newToken(.identifier, identifier)
         case let .generic(postfixExpr, identifier, genericArgumentClause):
-            return "\(generate(postfixExpr)).\(identifier)" +
-            "\(generate(genericArgumentClause, node: expression))"
+            return tokenize(postfixExpr) + expression.newToken(.delimiter, ".") + expression.newToken(.identifier, identifier) +
+                    tokenize(genericArgumentClause, node: expression)
         case let .argument(postfixExpr, identifier, argumentNames):
-            var textDesc = "\(generate(postfixExpr)).\(identifier)"
-            if !argumentNames.isEmpty {
-                let argumentNamesDesc = argumentNames.map({ "\($0):" }).joined()
-                textDesc += "(\(argumentNamesDesc))"
-            }
-            return textDesc
+            let argumentTokens = argumentNames.isEmpty ? nil : argumentNames.flatMap {
+                expression.newToken(.identifier, $0) + expression.newToken(.delimiter, ":")
+            }.prefix(with: expression.newToken(.startOfScope, "(")).suffix(with: expression.newToken(.endOfScope, ")"))
+            return tokenize(postfixExpr) + expression.newToken(.delimiter, ".") + expression.newToken(.identifier, identifier) + argumentTokens
         }
     }
     
-    open func generate(_ expression: ForcedValueExpression) -> String {
-        return "\(generate(expression.postfixExpression))!"
+    open func tokenize(_ expression: ForcedValueExpression) -> [Token] {
+        return tokenize(expression.postfixExpression) + expression.newToken(.symbol, "!")
     }
     
-    open func generate(_ expression: FunctionCallExpression) -> String {
-        var parameterText = ""
-        if let argumentClause = expression.argumentClause {
-            let argumentsText = argumentClause.map(generate).joined(separator: ", ")
-            parameterText = "(\(argumentsText))"
-        }
-        var trailingText = ""
-        if let trailingClosure = expression.trailingClosure {
-            trailingText = " \(generate(trailingClosure))"
-        }
-        return "\(generate(expression.postfixExpression))\(parameterText)\(trailingText)"
+    open func tokenize(_ expression: FunctionCallExpression) -> [Token] {
+        let argumentTokens = expression.argumentClause.map { argumentClause in
+            return argumentClause.map { tokenize($0, node: expression) }
+                .joined(token: argumentClause.newToken(.delimiter, ", ", expression))
+        }?.prefix(with: expression.newToken(.startOfScope, "(")).suffix(with: expression.newToken(.endOfScope, ")"))
+        return
+                tokenize(expression.postfixExpression) +
+                argumentTokens +
+                expression.trailingClosure.map { $0.newToken(.space, " ", expression) + tokenize($0, node: expression) }
     }
     
-    open func generate(_ expression: FunctionCallExpression.Argument) -> String {
+    open func tokenize(_ expression: FunctionCallExpression.Argument, node: ASTNode) -> [Token] {
         switch expression {
         case .expression(let expr):
-            return generate(expr)
+            return tokenize(expr)
         case let .namedExpression(identifier, expr):
-            return "\(identifier): \(generate(expr))"
+            return expression.newToken(.identifier, identifier, node) +
+                expression.newToken(.delimiter, ": ", node) +
+                tokenize(expr)
         case .memoryReference(let expr):
-            return "&\(generate(expr))"
+            return expression.newToken(.symbol, "&", node) + tokenize(expr)
         case let .namedMemoryReference(name, expr):
-            return "\(name): &\(generate(expr))"
+            return expression.newToken(.identifier, name, node) +
+                expression.newToken(.delimiter, ": ", node) +
+                expression.newToken(.symbol, "&", node) +
+                tokenize(expr)
         case .operator(let op):
-            return op
+            return [expression.newToken(.symbol, op, node)]
         case let .namedOperator(identifier, op):
-            return "\(identifier): \(op)"
+            return expression.newToken(.identifier, identifier, node) +
+                expression.newToken(.delimiter, ": ", node) +
+                expression.newToken(.symbol, op, node)
         }
     }
     
-    open func generate(_ expression: IdentifierExpression) -> String {
+    open func tokenize(_ expression: IdentifierExpression) -> [Token] {
         switch expression.kind {
         case let .identifier(id, generic):
-            return "\(id)\(generic.map { generate($0, node: expression) } ?? "")"
+            return expression.newToken(.identifier, id) + generic.map { tokenize($0, node: expression) }
         case let .implicitParameterName(i, generic):
-            return "$\(i)\(generic.map { generate($0, node: expression) } ?? "")"
+            return expression.newToken(.symbol, "$") +
+                expression.newToken(.number, "\(i)") +
+                generic.map { tokenize($0, node: expression) }
         }
     }
     
-    open func generate(_ expression: ImplicitMemberExpression) -> String {
-        return ".\(expression.identifier)"
+    open func tokenize(_ expression: ImplicitMemberExpression) -> [Token] {
+        return expression.newToken(.symbol, ".") + expression.newToken(.identifier, expression.identifier)
     }
     
-    open func generate(_ expression: InOutExpression) -> String {
-        return "&\(expression.identifier)"
+    open func tokenize(_ expression: InOutExpression) -> [Token] {
+        return expression.newToken(.symbol, "&") + expression.newToken(.identifier, expression.identifier)
     }
     
-    open func generate(_ expression: InitializerExpression) -> String {
-        var textDesc = "\(generate(expression.postfixExpression)).init"
+    open func tokenize(_ expression: InitializerExpression) -> [Token] {
+        var textDesc = "\(tokenize(expression.postfixExpression)).init"
         if !expression.argumentNames.isEmpty {
             let argumentNamesDesc = expression.argumentNames.map({ "\($0):" }).joined()
             textDesc += "(\(argumentNamesDesc))"
@@ -239,11 +241,11 @@ extension Tokenizer {
         return textDesc
     }
     
-    open func generate(_ expression: KeyPathStringExpression) -> String {
-        return "#keyPath(\(generate(expression.expression)))"
+    open func tokenize(_ expression: KeyPathStringExpression) -> [Token] {
+        return "#keyPath(\(tokenize(expression.expression)))"
     }
     
-    open func generate(_ expression: LiteralExpression) -> String {
+    open func tokenize(_ expression: LiteralExpression) -> [Token] {
         switch expression.kind {
         case .nil:
             return "nil"
@@ -258,45 +260,45 @@ extension Tokenizer {
         case let .interpolatedString(_, rawText):
             return rawText
         case .array(let exprs):
-            let arrayText = exprs.map(generate).joined(separator: ", ")
+            let arrayText = exprs.map(tokenize).joined(separator: ", ")
             return "[\(arrayText)]"
         case .dictionary(let entries):
             if entries.isEmpty {
                 return "[:]"
             }
-            let dictText = entries.map(generate).joined(separator: ", ")
+            let dictText = entries.map(tokenize).joined(separator: ", ")
             return "[\(dictText)]"
         }
     }
     
-    open func generate(_ expression: OptionalChainingExpression) -> String {
-        return "\(generate(expression.postfixExpression))?"
+    open func tokenize(_ expression: OptionalChainingExpression) -> [Token] {
+        return "\(tokenize(expression.postfixExpression))?"
     }
     
-    open func generate(_ expression: ParenthesizedExpression) -> String {
-        return "(\(generate(expression.expression)))"
+    open func tokenize(_ expression: ParenthesizedExpression) -> [Token] {
+        return "(\(tokenize(expression.expression)))"
     }
     
-    open func generate(_ expression: PostfixOperatorExpression) -> String {
-        return "\(generate(expression.postfixExpression))\(expression.postfixOperator)"
+    open func tokenize(_ expression: PostfixOperatorExpression) -> [Token] {
+        return "\(tokenize(expression.postfixExpression))\(expression.postfixOperator)"
     }
     
-    open func generate(_ expression: PostfixSelfExpression) -> String {
-        return "\(generate(expression.postfixExpression)).self"
+    open func tokenize(_ expression: PostfixSelfExpression) -> [Token] {
+        return "\(tokenize(expression.postfixExpression)).self"
     }
     
-    open func generate(_ expression: PrefixOperatorExpression) -> String {
-        return "\(expression.prefixOperator)\(generate(expression.postfixExpression))"
+    open func tokenize(_ expression: PrefixOperatorExpression) -> [Token] {
+        return "\(expression.prefixOperator)\(tokenize(expression.postfixExpression))"
     }
     
-    open func generate(_ expression: SelectorExpression) -> String {
+    open func tokenize(_ expression: SelectorExpression) -> [Token] {
         switch expression.kind {
         case .selector(let expr):
-            return "#selector(\(generate(expr)))"
+            return "#selector(\(tokenize(expr)))"
         case .getter(let expr):
-            return "#selector(getter: \(generate(expr)))"
+            return "#selector(getter: \(tokenize(expr)))"
         case .setter(let expr):
-            return "#selector(setter: \(generate(expr)))"
+            return "#selector(setter: \(tokenize(expr)))"
         case let .selfMember(identifier, argumentNames):
             var textDesc = identifier
             if !argumentNames.isEmpty {
@@ -307,62 +309,62 @@ extension Tokenizer {
         }
     }
     
-    open func generate(_ expression: SelfExpression) -> String {
+    open func tokenize(_ expression: SelfExpression) -> [Token] {
         switch expression.kind {
         case .self:
             return "self"
         case .method(let name):
             return "self.\(name)"
         case .subscript(let args):
-            let argsText = args.map(generate).joined(separator: ", ")
+            let argsText = args.map(tokenize).joined(separator: ", ")
             return "self[\(argsText)]"
         case .initializer:
             return "self.init"
         }
     }
     
-    open func generate(_ expression: SubscriptExpression) -> String {
-        let argsText = expression.arguments.map(generate).joined(separator: ", ")
-        return "\(generate(expression.postfixExpression))[\(argsText)]"
+    open func tokenize(_ expression: SubscriptExpression) -> [Token] {
+        let argsText = expression.arguments.map(tokenize).joined(separator: ", ")
+        return "\(tokenize(expression.postfixExpression))[\(argsText)]"
     }
     
-    open func generate(_ expression: SuperclassExpression) -> String {
+    open func tokenize(_ expression: SuperclassExpression) -> [Token] {
         switch expression.kind {
         case .method(let name):
             return "super.\(name)"
         case .subscript(let args):
-            let argsText = args.map(generate).joined(separator: ", ")
+            let argsText = args.map(tokenize).joined(separator: ", ")
             return "super[\(argsText)]"
         case .initializer:
             return "super.init"
         }
     }
     
-    open func generate(_ expression: TernaryConditionalOperatorExpression) -> String {
-        let conditionExpr = generate(expression.conditionExpression)
-        let trueExpr = generate(expression.trueExpression)
-        let falseExpr = generate(expression.falseExpression)
+    open func tokenize(_ expression: TernaryConditionalOperatorExpression) -> [Token] {
+        let conditionExpr = tokenize(expression.conditionExpression)
+        let trueExpr = tokenize(expression.trueExpression)
+        let falseExpr = tokenize(expression.falseExpression)
         return "\(conditionExpr) ? \(trueExpr) : \(falseExpr)"
     }
     
-    open func generate(_ expression: TryOperatorExpression) -> String {
+    open func tokenize(_ expression: TryOperatorExpression) -> [Token] {
         let tryText: String
         let exprText: String
         switch expression.kind {
         case .try(let expr):
             tryText = "try"
-            exprText = generate(expr)
+            exprText = tokenize(expr)
         case .forced(let expr):
             tryText = "try!"
-            exprText = generate(expr)
+            exprText = tokenize(expr)
         case .optional(let expr):
             tryText = "try?"
-            exprText = generate(expr)
+            exprText = tokenize(expr)
         }
         return "\(tryText) \(exprText)"
     }
     
-    open func generate(_ expression: TupleExpression) -> String {
+    open func tokenize(_ expression: TupleExpression) -> [Token] {
         if expression.elementList.isEmpty {
             return "()"
         }
@@ -372,59 +374,65 @@ extension Tokenizer {
             if let id = element.identifier {
                 idText = "\(id): "
             }
-            return "\(idText)\(generate(element.expression))"
+            return "\(idText)\(tokenize(element.expression))"
         }
         return "(\(listText.joined(separator: ", ")))"
     }
     
-    open func generate(_ expression: TypeCastingOperatorExpression) -> String {
+    open func tokenize(_ expression: TypeCastingOperatorExpression) -> [Token] {
         let exprText: String
         let operatorText: String
         let typeText: String
         switch expression.kind {
         case let .check(expr, type):
-            exprText = generate(expr)
+            exprText = tokenize(expr)
             operatorText = "is"
-            typeText = generate(type, node: expression)
+            typeText = tokenize(type, node: expression)
         case let .cast(expr, type):
-            exprText = generate(expr)
+            exprText = tokenize(expr)
             operatorText = "as"
-            typeText = generate(type, node: expression)
+            typeText = tokenize(type, node: expression)
         case let .conditionalCast(expr, type):
-            exprText = generate(expr)
+            exprText = tokenize(expr)
             operatorText = "as?"
-            typeText = generate(type, node: expression)
+            typeText = tokenize(type, node: expression)
         case let .forcedCast(expr, type):
-            exprText = generate(expr)
+            exprText = tokenize(expr)
             operatorText = "as!"
-            typeText = generate(type, node: expression)
+            typeText = tokenize(type, node: expression)
         }
         return "\(exprText) \(operatorText) \(typeText)"
     }
     
-    open func generate(_ expression: WildcardExpression) -> String {
+    open func tokenize(_ expression: WildcardExpression) -> [Token] {
         return "_"
     }
     
     // MARK: Utils
     
-    open func generate(_ expression: DictionaryEntry) -> String {
-        return "\(generate(expression.key)): \(generate(expression.value))"
+    open func tokenize(_ expression: DictionaryEntry) -> [Token] {
+        return "\(tokenize(expression.key)): \(tokenize(expression.value))"
     }
     
-    open func generate(_ arg: SubscriptArgument) -> String {
+    open func tokenize(_ arg: SubscriptArgument) -> [Token] {
         var identifierText = ""
         if let id = arg.identifier {
             identifierText = "\(id): "
         }
-        return "\(identifierText)\(generate(arg.expression))"
+        return "\(identifierText)\(tokenize(arg.expression))"
     }
+    
+    // TODO: Delete generate methods
+    open func generate(_ expression: Expression) -> String {
+        return tokenize(expression).joinedValues()
+    }
+
 }
 
-// TODO: Delete when ready
-extension Expression {
-    func newToken(_ kind: Token.Kind, _ value: String) -> Token {
-        return Token(origin: self as? ASTTokenizable, node: self as? ASTNode, kind: kind, value: value)
-    }
-}
 
+extension ClosureExpression.Signature: ASTTokenizable {}
+extension ClosureExpression.Signature.CaptureItem: ASTTokenizable {}
+extension ClosureExpression.Signature.CaptureItem.Specifier: ASTTokenizable {}
+extension ClosureExpression.Signature.ParameterClause: ASTTokenizable {}
+extension ClosureExpression.Signature.ParameterClause.Parameter: ASTTokenizable {}
+extension FunctionCallExpression.Argument: ASTTokenizable {}

@@ -17,6 +17,7 @@
 import AST
 
 extension Tokenizer {
+    // TODO: Remove node parameter because statement is a node
     open func tokenize(_ statement: Statement, node: ASTNode) -> [Token] {
         switch statement {
         case let decl as Declaration:
@@ -119,7 +120,7 @@ extension Tokenizer {
         return [
             [statement.newToken(.keyword, "catch", node)],
             statement.pattern.map { tokenize($0, node: node) } ?? [],
-            statement.whereExpression.map { [$0.newToken(.keyword, "where")] } ?? [],
+            statement.whereExpression.map { _ in [statement.newToken(.keyword, "where", node)] } ?? [],
             statement.whereExpression.map { tokenize($0, node: node) } ?? [],
             tokenize(statement.codeBlock)
         ].joined(token: statement.newToken(.space, " ", node))
@@ -136,7 +137,7 @@ extension Tokenizer {
             tokenize(statement.item.matchingPattern, node: statement),
             [statement.newToken(.keyword, "in")],
             tokenize(statement.collection),
-            statement.item.whereClause.map { [$0.newToken(.keyword, "where")] } ?? [],
+            statement.item.whereClause.map { _ in [statement.newToken(.keyword, "where")] } ?? [],
             statement.item.whereClause.map { tokenize($0) } ?? [],
             tokenize(statement.codeBlock)
         ].joined(token: statement.newToken(.space, " "))
@@ -239,7 +240,7 @@ extension Tokenizer {
     open func tokenize(_ statement: SwitchStatement.Case.Item, node: ASTNode) -> [Token] {
         return [
             tokenize(statement.pattern, node: node),
-            statement.whereExpression.map { [$0.newToken(.keyword, "where")] } ?? [],
+            statement.whereExpression.map { [statement.newToken(.keyword, "where")] } ?? [],
             statement.whereExpression.map { tokenize($0, node: node) } ?? []
         ].joined(token: statement.newToken(.space, " ", node))
     }
