@@ -56,6 +56,7 @@ class GeneratorTests : XCTestCase {
       "AssignmentOperatorExpression",
       "TernaryConditionalOperatorExpression",
       "TypeCastingOperatorExpression",
+      "SequenceExpression",
 
       // try expression
       "TryOperatorExpression",
