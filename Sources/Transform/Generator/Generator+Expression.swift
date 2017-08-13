@@ -57,6 +57,8 @@ extension Generator {
       return generate(expr)
     case let expr as SelfExpression:
       return generate(expr)
+    case let expr as SequenceExpression:
+      return generate(expr)
     case let expr as SubscriptExpression:
       return generate(expr)
     case let expr as SuperclassExpression:
@@ -314,6 +316,29 @@ extension Generator {
     case .initializer:
       return "self.init"
     }
+  }
+
+  open func generate(_ expression: SequenceExpression) -> String {
+    return expression.elements.map({ elem -> String in
+      switch elem {
+      case .expression(let expr):
+        return generate(expr)
+      case .assignmentOperator:
+        return "="
+      case .binaryOperator(let op):
+        return op
+      case .ternaryConditionalOperator(let expr):
+        return "? \(generate(expr)) :"
+      case .typeCheck(let type):
+        return "is \(generate(type))"
+      case .typeCast(let type):
+        return "as \(generate(type))"
+      case .typeConditionalCast(let type):
+        return "as? \(generate(type))"
+      case .typeForcedCast(let type):
+        return "as! \(generate(type))"
+      }
+    }).joined(separator: " ")
   }
 
   open func generate(_ expression: SubscriptExpression) -> String {
