@@ -93,25 +93,39 @@ extension Tokenizer {
             tokenize(expression.rightExpression)
         ].joined(token: expression.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ expression: ClosureExpression) -> [Token] {
-        return [
-            [expression.newToken(.startOfScope, "{")],
-            expression.signature.map { tokenize($0, node: expression) } ?? [],
-            expression.signature.map { [$0.newToken(.keyword, "in", expression)] } ?? [],
-            expression.statements.map { stmts in
-                if expression.signature == nil && stmts.count == 1 {
-                    return tokenize(stmts, node: expression)
-                } else {
-                    return indent(
-                        expression.newToken(.linebreak, "\n") +
+        let spaceToken = expression.newToken(.space, " ")
+        var signatureTokens = [Token]()
+        var stmtsTokens = [Token]()
+
+        if let signature = expression.signature {
+            signatureTokens = spaceToken +
+                tokenize(signature, node: expression) +
+                spaceToken +
+                expression.newToken(.keyword, "in")
+            if expression.statements == nil {
+                stmtsTokens = [spaceToken]
+            }
+        }
+
+        if let stmts = expression.statements {
+            if expression.signature == nil && stmts.count == 1 {
+                stmtsTokens = spaceToken + tokenize(stmts, node: expression) + spaceToken
+            } else {
+                stmtsTokens = indent(
+                    expression.newToken(.linebreak, "\n") +
                         tokenize(stmts, node: expression)
                     ) + expression.newToken(.linebreak, "\n")
-                }
-            } ?? [],
-            [expression.newToken(.endOfScope, "}")],
-        ].joined(token: expression.newToken(.space, " "))
+            }
+        }
+
+        return [expression.newToken(.startOfScope, "{")] +
+            signatureTokens +
+            stmtsTokens +
+            expression.newToken(.endOfScope, "}")        
     }
+
     
     open func tokenize(_ expression: ClosureExpression.Signature.CaptureItem, node: ASTNode) -> [Token] {
         return [
@@ -180,22 +194,23 @@ extension Tokenizer {
     open func tokenize(_ expression: ForcedValueExpression) -> [Token] {
         return tokenize(expression.postfixExpression) + expression.newToken(.symbol, "!")
     }
-    
+
     open func tokenize(_ expression: FunctionCallExpression) -> [Token] {
-        let argumentTokens = (expression.argumentClause.map { argumentClause in
-            return argumentClause.map { tokenize($0, node: expression) }
+        var parameterTokens = [Token]()
+        if let argumentClause = expression.argumentClause {
+            let argumentsTokens = argumentClause.map{ tokenize($0, node: expression) }
                 .joined(token: expression.newToken(.delimiter, ", "))
-        }?.prefix(with: expression.newToken(.startOfScope, "("))
-            .suffix(with: expression.newToken(.endOfScope, ")"))) ?? []
-        let trailingTokens = expression.trailingClosure.map {
-            return $0.newToken(.space, " ", expression) + tokenize($0, node: expression)
-        } ?? []
-        return
-                tokenize(expression.postfixExpression) +
-                argumentTokens +
-                trailingTokens
+            parameterTokens = expression.newToken(.startOfScope, "(") +
+                argumentsTokens +
+                expression.newToken(.endOfScope, ")")
+        }
+        var trailingTokens = [Token]()
+        if let trailingClosure = expression.trailingClosure {
+            trailingTokens = trailingClosure.newToken(.space, " ", expression) + tokenize(trailingClosure, node: expression)
+        }
+        return tokenize(expression.postfixExpression) + parameterTokens + trailingTokens
     }
-    
+
     open func tokenize(_ expression: FunctionCallExpression.Argument, node: ASTNode) -> [Token] {
         switch expression {
         case .expression(let expr):
@@ -277,9 +292,10 @@ extension Tokenizer {
         case let .interpolatedString(_, rawText):
             return [expression.newToken(.string, rawText)]
         case .array(let exprs):
-            return exprs.map(tokenize).joined(token: expression.newToken(.delimiter, ", "))
-                .prefix(with: expression.newToken(.startOfScope, "["))
-                .suffix(with: expression.newToken(.endOfScope, "]"))
+            return
+                expression.newToken(.startOfScope, "[") +
+                exprs.map(tokenize).joined(token: expression.newToken(.delimiter, ", ")) +
+                expression.newToken(.endOfScope, "]")
         case .dictionary(let entries):
             if entries.isEmpty {
                 return expression.newToken(.startOfScope, "[") +
