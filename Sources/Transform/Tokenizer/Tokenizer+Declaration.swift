@@ -282,7 +282,11 @@ extension Tokenizer {
         let resultText = signature.result.map({ [generate($0, node: node)] }) ?? []
         return (parameterText + throwsKindText + resultText).joined(separator: " ")
     }
-    
+
+    // TODO: Review
+    open func tokenize(_ result: FunctionResult, node: ASTNode) -> [Token] {
+        return [node.newToken(.identifier, generate(result, node: node))]
+    }
     open func generate(_ result: FunctionResult, node: ASTNode) -> String {
         let typeText = generate(result.type, node: node)
         if result.attributes.isEmpty {

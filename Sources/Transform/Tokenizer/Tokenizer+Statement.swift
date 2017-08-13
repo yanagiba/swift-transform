@@ -117,12 +117,17 @@ extension Tokenizer {
     }
     
     open func tokenize(_ statement: DoStatement.CatchClause, node: ASTNode) -> [Token] {
+        let catchTokens = [statement.newToken(.keyword, "catch", node)]
+        let patternTokens = statement.pattern.map { tokenize($0, node: node) } ?? []
+        let whereKeyword = statement.whereExpression.map { _ in [statement.newToken(.keyword, "where", node)] } ?? []
+        let whereTokens = statement.whereExpression.map { tokenize($0, node: node) } ?? []
+        let codeTokens = tokenize(statement.codeBlock)
         return [
-            [statement.newToken(.keyword, "catch", node)],
-            statement.pattern.map { tokenize($0, node: node) } ?? [],
-            statement.whereExpression.map { _ in [statement.newToken(.keyword, "where", node)] } ?? [],
-            statement.whereExpression.map { tokenize($0, node: node) } ?? [],
-            tokenize(statement.codeBlock)
+            catchTokens,
+            patternTokens,
+            whereKeyword,
+            whereTokens,
+            codeTokens
         ].joined(token: statement.newToken(.space, " ", node))
     }
     
@@ -240,7 +245,7 @@ extension Tokenizer {
     open func tokenize(_ statement: SwitchStatement.Case.Item, node: ASTNode) -> [Token] {
         return [
             tokenize(statement.pattern, node: node),
-            statement.whereExpression.map { [statement.newToken(.keyword, "where")] } ?? [],
+            statement.whereExpression.map { _ in [statement.newToken(.keyword, "where", node)] } ?? [],
             statement.whereExpression.map { tokenize($0, node: node) } ?? []
         ].joined(token: statement.newToken(.space, " ", node))
     }
