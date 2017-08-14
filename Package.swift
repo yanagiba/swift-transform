@@ -37,7 +37,7 @@ let package = Package(
   dependencies: [
     .package(
       url: "https://github.com/yanagiba/swift-ast",
-      .revision("af3edc8e3301dfc846efc1375949391dbbcd6ed1")
+      .revision("875d28b94ec6f063da9fb6fa2353f3b06ecdc538")
     ),
     .package(
       url: "https://github.com/yanagiba/bocho",
