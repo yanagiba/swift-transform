@@ -14,18 +14,10 @@
    limitations under the License.
 */
 
-import Foundation
+import Bocho
 
 extension String {
-  init(indentation: Int) {
-    self.init(repeating: "  ", count: indentation)
-  }
-
-  static let indent = String(indentation: 1)
-
   var indent: String {
-    return components(separatedBy: .newlines)
-      .map { String.indent + $0 }
-      .joined(separator: "\n")
+    return indented
   }
 }
