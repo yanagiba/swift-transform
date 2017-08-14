@@ -37,18 +37,18 @@ let package = Package(
   dependencies: [
     .package(
       url: "https://github.com/yanagiba/swift-ast",
-      .revision("8293b9d4f9ffa9e9678eb4f80b4e3dfe64690641")
+      .revision("875d28b94ec6f063da9fb6fa2353f3b06ecdc538")
     ),
     .package(
       url: "https://github.com/yanagiba/bocho",
-      .revision("25b9439a94ad26c169cf4b5f05826e811b3ba009")
+      .revision("a02d4faf11539b121cc007210a0141478fa3d924")
     ),
   ],
   targets: [
     .target(
       name: "Transform",
       dependencies: [
-        "SwiftAST",
+        "SwiftAST+Tooling",
       ]
     ),
     .target(

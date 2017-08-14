@@ -18,6 +18,8 @@ import Foundation
 
 import Source
 import Parser
+import Diagnostic
+import Tooling
 
 open class Driver {
   private var _generator: Generator
@@ -34,14 +36,22 @@ open class Driver {
     sourceFile: SourceFile,
     outputHandle: FileHandle = .standardOutput
   ) -> Int32 {
-    let parser = Parser(source: sourceFile)
-    guard let topLevelDecl = try? parser.parse() else {
+    let diagnosticConsumer = SilentDiagnosticConsumer()
+    let tooling = ToolAction()
+    let result = tooling.run(
+      sourceFiles: [sourceFile],
+      diagnosticConsumer: diagnosticConsumer,
+      options: [.assignLexicalParent])
+
+    guard result.exitCode == ToolActionResult.success,
+      let astUnit = result.astUnitCollection.first
+    else {
       print("Failed in parsing file \(sourceFile.identifier)")
       // Ignore the errors for now
       return -1
     }
 
-    let transformed = _generator.generate(topLevelDecl)
+    let transformed = _generator.generate(astUnit.translationUnit)
     guard let strData = "\(transformed)\n".data(using: .utf8) else {
       return -2
     }
@@ -50,4 +60,8 @@ open class Driver {
 
     return 0
   }
+}
+
+private struct SilentDiagnosticConsumer : DiagnosticConsumer {
+  func consume(diagnostics: [Diagnostic]) {}
 }
