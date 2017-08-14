@@ -331,13 +331,13 @@ extension Generator {
       case .ternaryConditionalOperator(let expr):
         return "? \(generate(expr)) :"
       case .typeCheck(let type):
-        return "is \(generate(type))"
+        return "is \(generate(type, node: expression))"
       case .typeCast(let type):
-        return "as \(generate(type))"
+        return "as \(generate(type, node: expression))"
       case .typeConditionalCast(let type):
-        return "as? \(generate(type))"
+        return "as? \(generate(type, node: expression))"
       case .typeForcedCast(let type):
-        return "as! \(generate(type))"
+        return "as! \(generate(type, node: expression))"
       }
     }).joined(separator: " ")
   }
