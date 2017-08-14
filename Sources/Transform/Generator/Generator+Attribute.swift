@@ -17,32 +17,8 @@
 import AST
 
 extension Generator {
-  open func generate(_ attributes: Attributes) -> String {
-    return attributes.map(generate).joined(separator: " ")
-  }
-
-  open func generate(_ attribute: Attribute) -> String {
-    return "@\(attribute.name)\(attribute.argumentClause.map(generate) ?? "")"
-  }
-
-  open func generate(_ argument: Attribute.ArgumentClause) -> String {
-    return "(\(generate(argument.balancedTokens)))"
-  }
-
-  open func generate(_ token: Attribute.ArgumentClause.BalancedToken) -> String {
-    switch token {
-    case .token(let tokenString):
-      return tokenString
-    case .parenthesis(let tokens):
-      return "(\(generate(tokens)))"
-    case .square(let tokens):
-      return "[\(generate(tokens))]"
-    case .brace(let tokens):
-      return "{\(generate(tokens))}"
-    }
-  }
-
-  open func generate(_ tokens: [Attribute.ArgumentClause.BalancedToken]) -> String {
-    return tokens.map(generate).joined()
+  open func generate(_ attributes: Attributes, node: ASTNode) -> String {
+    let tokens = _tokenizer.tokenize(attributes, node: node)
+    return _tokenJoiner.join(tokens: tokens)
   }
 }
