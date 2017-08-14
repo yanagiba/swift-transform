@@ -555,4 +555,9 @@ extension Generator {
   open func generate(_ modifier: MutationModifier) -> String {
     return modifier.rawValue
   }
+
+  open func generate(_ node: ThrowsKind) -> String {
+    let tokens = _tokenizer.tokenize(node, node: WildcardExpression())
+    return _tokenJoiner.join(tokens: tokens)
+  }
 }
