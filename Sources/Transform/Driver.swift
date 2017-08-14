@@ -37,12 +37,11 @@ open class Driver {
     outputHandle: FileHandle = .standardOutput
   ) -> Int32 {
     let diagnosticConsumer = SilentDiagnosticConsumer()
-    let toolingOption = ToolActionOption(sequenceExpressionFoldingEnabled: true)
     let tooling = ToolAction()
     let result = tooling.run(
       sourceFiles: [sourceFile],
       diagnosticConsumer: diagnosticConsumer,
-      option: toolingOption)
+      options: [.assignLexicalParent])
 
     guard result.exitCode == ToolActionResult.success,
       let astUnit = result.astUnitCollection.first
