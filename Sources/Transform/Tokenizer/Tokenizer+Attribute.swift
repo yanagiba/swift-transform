@@ -17,39 +17,52 @@
 import AST
 
 extension Tokenizer {
-
-    // TODO: Review
+    
     open func tokenize(_ attributes: Attributes, node: ASTNode) -> [Token] {
-        return attributes.map { [node.newToken(.identifier, generate($0), node)] }
-            .joined(token: node.newToken(.space, " ", node))
+        return attributes.map { tokenize($0, node: node) }.joined(token: node.newToken(.space, " ", node))
     }
 
-    open func generate(_ attributes: Attributes) -> String {
-        return attributes.map(generate).joined(separator: " ")
+    open func tokenize(_ attribute: Attribute, node: ASTNode) -> [Token] {
+        return
+            attribute.newToken(.symbol, "@", node) +
+            attribute.newToken(.identifier, attribute.name, node) +
+            attribute.argumentClause.map { tokenize($0, node: node) }
     }
 
-    open func generate(_ attribute: Attribute) -> String {
-        return "@\(attribute.name)\(attribute.argumentClause.map(generate) ?? "")"
+    open func tokenize(_ argument: Attribute.ArgumentClause, node: ASTNode) -> [Token] {
+        return
+            argument.newToken(.startOfScope, "(", node) +
+            tokenize(argument.balancedTokens, node: node) +
+            argument.newToken(.endOfScope, ")", node)
     }
 
-    open func generate(_ argument: Attribute.ArgumentClause) -> String {
-        return "(\(generate(argument.balancedTokens)))"
+    open func tokenize(_ tokens: [Attribute.ArgumentClause.BalancedToken], node: ASTNode) -> [Token] {
+        return tokens.map { tokenize($0, node: node) }.joined()
     }
 
-    open func generate(_ token: Attribute.ArgumentClause.BalancedToken) -> String {
+    open func tokenize(_ token: Attribute.ArgumentClause.BalancedToken, node: ASTNode) -> [Token] {
         switch token {
         case .token(let tokenString):
-            return tokenString
+            return [token.newToken(.identifier, tokenString, node)]
         case .parenthesis(let tokens):
-            return "(\(generate(tokens)))"
+            return token.newToken(.startOfScope, "(", node) + tokenize(tokens, node: node) + token.newToken(.endOfScope, ")", node)
         case .square(let tokens):
-            return "[\(generate(tokens))]"
+            return token.newToken(.startOfScope, "[", node) + tokenize(tokens, node: node) + token.newToken(.endOfScope, "]", node)
         case .brace(let tokens):
-            return "{\(generate(tokens))}"
+            return token.newToken(.startOfScope, "{", node) + tokenize(tokens, node: node) + token.newToken(.endOfScope, "}", node)
         }
     }
 
-    open func generate(_ tokens: [Attribute.ArgumentClause.BalancedToken]) -> String {
-        return tokens.map(generate).joined()
+    // TODO: Delete generate methods
+
+    open func generate(_ attributes: Attributes, node: ASTNode) -> String {
+        return tokenize(attributes, node: node).joinedValues()
+    }
+    open func generate(_ attribute: Attribute, node: ASTNode) -> String {
+       return tokenize(attribute, node: node).joinedValues()
     }
 }
+extension Attribute: ASTTokenizable {}
+extension Attribute.ArgumentClause: ASTTokenizable {}
+extension Attribute.ArgumentClause.BalancedToken: ASTTokenizable {}
+
