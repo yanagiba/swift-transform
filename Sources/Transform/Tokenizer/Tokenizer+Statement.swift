@@ -228,17 +228,15 @@ extension Tokenizer {
                 statement.newToken(.space, " ", node) +
                 itemList.map { tokenize($0, node: node) }.joined(token: statement.newToken(.delimiter, ", ", node)) +
                 statement.newToken(.delimiter, ":", node) +
-                indent(
-                    statement.newToken(.linebreak, "\n", node) +
-                    tokenize(stmts, node: node))
+                statement.newToken(.linebreak, "\n", node) +
+                indent(tokenize(stmts, node: node))
             
         case .default(let stmts):
             return
                 statement.newToken(.keyword, "default", node) +
                 statement.newToken(.delimiter, ":", node) +
-                indent(
-                    statement.newToken(.linebreak, "\n", node) +
-                    tokenize(stmts, node: node))
+                statement.newToken(.linebreak, "\n", node) +
+                indent(tokenize(stmts, node: node))
         }
     }
     

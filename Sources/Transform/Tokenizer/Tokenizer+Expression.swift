@@ -113,10 +113,9 @@ extension Tokenizer {
             if expression.signature == nil && stmts.count == 1 {
                 stmtsTokens = spaceToken + tokenize(stmts, node: expression) + spaceToken
             } else {
-                stmtsTokens = indent(
-                    expression.newToken(.linebreak, "\n") +
-                        tokenize(stmts, node: expression)
-                    ) + expression.newToken(.linebreak, "\n")
+                stmtsTokens = expression.newToken(.linebreak, "\n") +
+                    indent(tokenize(stmts, node: expression)) +
+                    expression.newToken(.linebreak, "\n")
             }
         }
 
