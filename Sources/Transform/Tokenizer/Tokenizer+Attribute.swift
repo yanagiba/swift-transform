@@ -53,14 +53,6 @@ extension Tokenizer {
         }
     }
     
-    // TODO: Delete generate methods
-
-    open func generate(_ attributes: Attributes, node: ASTNode) -> String {
-        return tokenize(attributes, node: node).joinedValues()
-    }
-    open func generate(_ attribute: Attribute, node: ASTNode) -> String {
-       return tokenize(attribute, node: node).joinedValues()
-    }
 }
 
 extension Attribute: ASTTokenizable {}

@@ -17,7 +17,11 @@
 import AST
 
 extension Tokenizer {
-    
+
+    open func tokenize(expression: Expression) -> [Token] {
+        return tokenize(expression)
+    }
+
     open func tokenize(_ expression: Expression) -> [Token] {
         switch expression {
         case let expr as AssignmentOperatorExpression:
@@ -113,9 +117,9 @@ extension Tokenizer {
             if expression.signature == nil && stmts.count == 1 {
                 stmtsTokens = spaceToken + tokenize(stmts, node: expression) + spaceToken
             } else {
-                stmtsTokens = expression.newToken(.linebreak, "\n") +
-                    indent(tokenize(stmts, node: expression)) +
-                    expression.newToken(.linebreak, "\n")
+                stmtsTokens += [expression.newToken(.linebreak, "\n")]
+                stmtsTokens += indent(tokenize(stmts, node: expression))
+                stmtsTokens += [expression.newToken(.linebreak, "\n")]
             }
         }
 
@@ -293,7 +297,7 @@ extension Tokenizer {
         case .array(let exprs):
             return
                 expression.newToken(.startOfScope, "[") +
-                exprs.map(tokenize).joined(token: expression.newToken(.delimiter, ", ")) +
+                exprs.map { tokenize($0) }.joined(token: expression.newToken(.delimiter, ", ")) +
                 expression.newToken(.endOfScope, "]")
         case .dictionary(let entries):
             if entries.isEmpty {
@@ -341,17 +345,17 @@ extension Tokenizer {
                 tokenize(expr) +
                 expression.newToken(.endOfScope, ")")
         case .getter(let expr):
-            return expression.newToken(.keyword, "#selector") +
-                expression.newToken(.startOfScope, "(") +
-                expression.newToken(.keyword, "getter") +
-                expression.newToken(.delimiter, ": ") +
+            return [expression.newToken(.keyword, "#selector"),
+                expression.newToken(.startOfScope, "("),
+                expression.newToken(.keyword, "getter"),
+                expression.newToken(.delimiter, ": ")] +
                 tokenize(expr) +
                 expression.newToken(.endOfScope, ")")
         case .setter(let expr):
-            return expression.newToken(.keyword, "#selector") +
-                expression.newToken(.startOfScope, "(") +
-                expression.newToken(.keyword, "setter") +
-                expression.newToken(.delimiter, ": ") +
+            return [expression.newToken(.keyword, "#selector"),
+                expression.newToken(.startOfScope, "("),
+                expression.newToken(.keyword, "setter"),
+                expression.newToken(.delimiter, ": ")] +
                 tokenize(expr) +
                 expression.newToken(.endOfScope, ")")
         case let .selfMember(identifier, argumentNames):
@@ -512,11 +516,6 @@ extension Tokenizer {
         } + tokenize(arg.expression)
     }
     
-    // TODO: Delete generate methods
-    open func generate(_ expression: Expression) -> String {
-        return tokenize(expression).joinedValues()
-    }
-
 }
 
 

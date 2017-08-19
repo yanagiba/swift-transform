@@ -72,19 +72,6 @@ extension Tokenizer {
                 clause.newToken(.endOfScope, ">", node)
     }
     
-    // TODO: Delete generate methods
-    
-    open func generate(_ clause: GenericParameterClause, node: ASTNode) -> String {
-        return tokenize(clause, node: node).joinedValues()
-    }
-    
-    open func generate(_ clause: GenericWhereClause, node: ASTNode) -> String {
-        return tokenize(clause, node: node).joinedValues()
-    }
-    
-    open func generate(_ clause: GenericArgumentClause, node: ASTNode) -> String {
-        return tokenize(clause, node: node).joinedValues()
-    }
 }
 
 

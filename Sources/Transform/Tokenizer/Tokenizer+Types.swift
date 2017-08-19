@@ -191,20 +191,6 @@ extension Tokenizer {
                 inheritanceTokens.joined(token: type.newToken(.delimiter, ", ", node))
     }
     
-    
-    // TODO: Delete temporal generates
-    open func generate(_ type: Type, node: ASTNode) -> String {
-        return tokenize(type, node: node).joinedValues()
-    }
-    
-    open func generate(_ type: TypeAnnotation, node: ASTNode) -> String {
-        return tokenize(type, node: node).joinedValues()
-    }
-    
-    open func generate(_ type: TypeInheritanceClause, node: ASTNode) -> String {
-        return tokenize(type, node: node).joinedValues()
-    }
-    
 }
 
 extension TypeBase: ASTTokenizable {}

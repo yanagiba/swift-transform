@@ -179,8 +179,8 @@ extension Tokenizer {
             return pttrnTokens
         }
         return pttrnTokens +
-            patternInitializer.newToken(.symbol, " = ", node) +
-            tokenize(initExpr, node: node)
+            [patternInitializer.newToken(.symbol, " = ", node)] +
+            tokenize(expression: initExpr)
     }
     
     open func tokenize(_ initializers: [PatternInitializer], node: ASTNode) -> [Token] {
@@ -647,53 +647,107 @@ extension Tokenizer {
     }
     
     open func tokenize(_ member: ProtocolDeclaration.InitializerMember, node: ASTNode) -> [Token] {
-        let attrsText = member.attributes.isEmpty ? "" : "\(tokenize(member.attributes, node: node)) "
-        let modifiersText = member.modifiers.isEmpty ? "" : "\(tokenize(member.modifiers)) "
-        let headText = "\(attrsText)\(modifiersText)init\(tokenize(member.kind))"
-        let genericParameterClauseText = member.genericParameter.map { tokenize($0, node: node) } ?? ""
-        let parameterText = "(\(member.parameterList.map { tokenize($0, node: node) }.joined(separator: ", ")))"
-        let throwsKindText = tokenize(member.throwsKind, node: node)
-            .prefix(with: member.newToken(.space, " ", node))
-            .joinedValues()
-        let genericWhereClauseText = member.genericWhere.map({ " \(tokenize($0, node: node))" }) ?? ""
-        return "\(headText)\(genericParameterClauseText)\(parameterText)\(throwsKindText)\(genericWhereClauseText)"
+        let attrsTokens = tokenize(member.attributes, node: node)
+        let modifierTokens = tokenize(member.modifiers, node: node)
+        let headTokens = [
+            attrsTokens,
+            modifierTokens,
+            member.newToken(.keyword, "init", node) + tokenize(member.kind, node: node),
+        ].joined(token: member.newToken(.space, " ", node))
+
+        let genericParameterClauseTokens = member.genericParameter.map { tokenize($0, node: node) } ?? []
+        let parameterTokens = member.newToken(.startOfScope, "(", node) +
+            member.parameterList.map { tokenize($0, node: node) }.joined(token: member.newToken(.delimiter, ", ", node)) +
+            member.newToken(.endOfScope, ")", node)
+
+        let throwsKindTokens = tokenize(member.throwsKind, node: node)
+        let genericWhereClauseTokens = member.genericWhere.map { tokenize($0, node: node) } ?? []
+
+        return [
+            headTokens,
+            genericParameterClauseTokens,
+            parameterTokens,
+            throwsKindTokens,
+            genericWhereClauseTokens
+        ].joined(token: member.newToken(.space, " ", node))
     }
     
     open func tokenize(_ member: ProtocolDeclaration.SubscriptMember, node: ASTNode) -> [Token] {
-        let attrsText = member.attributes.isEmpty ? "" : "\(tokenize(member.attributes, node: node)) "
-        let modifiersText = member.modifiers.isEmpty ? "" : "\(tokenize(member.modifiers)) "
-        let genericParamClauseText = member.genericParameter.map { tokenize($0, node: node) } ?? ""
-        let parameterText = "(\(member.parameterList.map { tokenize($0, node: node) }.joined(separator: ", ")))"
-        let headText = "\(attrsText)\(modifiersText)subscript\(genericParamClauseText)\(parameterText)"
+        let attrsTokens = tokenize(member.attributes, node: node)
+        let modifierTokens = tokenize(member.modifiers, node: node)
+        let genericParameterClauseTokens = member.genericParameter.map { tokenize($0, node: node) } ?? []
+        let parameterTokens = member.newToken(.startOfScope, "(", node) +
+            member.parameterList.map { tokenize($0, node: node) }.joined(token: member.newToken(.delimiter, ", ", node)) +
+            member.newToken(.endOfScope, ")", node)
+        let headTokens = [
+            attrsTokens,
+            modifierTokens,
+            [member.newToken(.keyword, "subscript", node)],
+            genericParameterClauseTokens,
+            parameterTokens
+        ].joined(token: member.newToken(.space, " ", node))
+
+        let resultAttrsTokens = tokenize(member.resultAttributes, node: node)
+        let resultTokens = [
+            [member.newToken(.symbol, "->", node)],
+            resultAttrsTokens,
+            tokenize(member.resultType, node: node)
+        ].joined(token: member.newToken(.space, " ", node))
         
-        let resultAttrsText = member.resultAttributes.isEmpty ? "" : "\(tokenize(member.resultAttributes, node: node)) "
-        let resultText = "-> \(resultAttrsText)\(tokenize(member.resultType, node: node))"
-        
-        let genericWhereClauseText = member.genericWhere.map({ " \(tokenize($0, node: node))" }) ?? ""
-        
-        return "\(headText) \(resultText)\(genericWhereClauseText) \(tokenize(member.getterSetterKeywordBlock, node: node))"
+        let genericWhereClauseTokens = member.genericWhere.map { tokenize($0, node: node) } ?? []
+
+        return [
+            headTokens,
+            resultTokens,
+            genericWhereClauseTokens,
+            tokenize(member.getterSetterKeywordBlock, node: node)
+        ].joined(token: member.newToken(.space, " ", node))
     }
     
     open func tokenize(_ member: ProtocolDeclaration.AssociativityTypeMember, node: ASTNode) -> [Token] {
-        let attrsText = member.attributes.isEmpty ? "" : "\(tokenize(member.attributes, node: node)) "
-        let modifierText = member.accessLevelModifier.map({ "\(tokenize($0)) " }) ?? ""
-        let typeText = member.typeInheritance.map { tokenize($0, node: node) } ?? ""
-        let assignmentText = member.assignmentType.map({ " = \(tokenize($0, node: node))" }) ?? ""
-        let genericWhereText = member.genericWhere.map({ " \(tokenize($0, node: node))" }) ?? ""
-        return "\(attrsText)\(modifierText)associatedtype \(member.name)\(typeText)\(assignmentText)\(genericWhereText)"
+        let attrsTokens = tokenize(member.attributes, node: node)
+        let modifierTokens = member.accessLevelModifier.map { tokenize($0, node: node) } ?? []
+        let typeTokens = member.typeInheritance.map { tokenize($0, node: node) } ?? []
+        let assignmentTokens = member.assignmentType.map { member.newToken(.symbol, " = ", node) + tokenize($0, node: node) } ?? []
+        let genericWhereTokens = member.genericWhere.map { tokenize($0, node: node) } ?? []
+
+        return [
+            attrsTokens,
+            modifierTokens,
+            [member.newToken(.keyword, "associatedtype", node)],
+            [member.newToken(.identifier, member.name, node)],
+            typeTokens,
+            assignmentTokens,
+            genericWhereTokens
+        ].joined(token: member.newToken(.space, " ", node))
     }
     
     open func tokenize(_ declaration: StructDeclaration) -> [Token] {
-        let attrsText = declaration.attributes.isEmpty ? "" : "\(tokenize(declaration.attributes, node: declaration)) "
-        let modifierText = declaration.accessLevelModifier.map({ "\(tokenize($0)) " }) ?? ""
-        let headText = "\(attrsText)\(modifierText)struct \(declaration.name)"
-        let genericParameterClauseText = declaration.genericParameterClause.map { tokenize($0, node: declaration) } ?? ""
-        let typeText = declaration.typeInheritanceClause.map { tokenize($0, node: declaration) } ?? ""
-        let whereText = declaration.genericWhereClause.map({ " \(tokenize($0, node: declaration))" }) ?? ""
-        let neckText = "\(genericParameterClauseText)\(typeText)\(whereText)"
-        let membersText = declaration.members.map(tokenize).joined(separator: "\n")
-        let memberText = declaration.members.isEmpty ? "" : "\n\(membersText.indent)\n"
-        return "\(headText)\(neckText) {\(memberText)}"
+        let attrsTokens = tokenize(declaration.attributes, node: declaration)
+        let modifierTokens = declaration.accessLevelModifier.map { tokenize($0, node: declaration) } ?? []
+        let headTokens = [
+            attrsTokens,
+            modifierTokens,
+            [declaration.newToken(.keyword, "struct")],
+            [declaration.newToken(.identifier, declaration.name)],
+        ].joined(token: declaration.newToken(.space, " "))
+
+        let genericParameterClauseTokens = declaration.genericParameterClause.map { tokenize($0, node: declaration) } ?? []
+        let typeTokens = declaration.typeInheritanceClause.map { tokenize($0, node: declaration) } ?? []
+        let whereTokens = declaration.genericWhereClause.map { declaration.newToken(.space, " ") + tokenize($0, node: declaration) } ?? []
+        let neckTokens = genericParameterClauseTokens +
+            typeTokens +
+            whereTokens
+
+        let membersTokens = indent(declaration.members.map(tokenize).joined(token: declaration.newToken(.linebreak, "\n")))
+            .prefix(with: declaration.newToken(.linebreak, "\n"))
+            .suffix(with: declaration.newToken(.linebreak, "\n"))
+
+        return headTokens +
+            neckTokens +
+            [declaration.newToken(.space, " "), declaration.newToken(.startOfScope, "{")] +
+            membersTokens +
+            [declaration.newToken(.endOfScope, "}")]
     }
     
     open func tokenize(_ member: StructDeclaration.Member) -> [Token] {
@@ -706,18 +760,36 @@ extension Tokenizer {
     }
     
     open func tokenize(_ declaration: SubscriptDeclaration) -> [Token] {
-        let attrsText = declaration.attributes.isEmpty ? "" : "\(tokenize(declaration.attributes, node: declaration)) "
-        let modifiersText = declaration.modifiers.isEmpty ? "" : "\(tokenize(declaration.modifiers)) "
-        let genericParamClauseText = declaration.genericParameterClause.map { tokenize($0, node: declaration) } ?? ""
-        let parameterText = "(\(declaration.parameterList.map { tokenize($0, node: declaration) }.joined(separator: ", ")))"
-        let headText = "\(attrsText)\(modifiersText)subscript\(genericParamClauseText)\(parameterText)"
-        
-        let resultAttrsText = declaration.resultAttributes.isEmpty ? "" : "\(tokenize(declaration.resultAttributes, node: declaration)) "
-        let resultText = "-> \(resultAttrsText)\(tokenize(declaration.resultType, node: declaration))"
-        
-        let genericWhereClauseText = declaration.genericWhereClause.map({ " \(tokenize($0, node: declaration))" }) ?? ""
-        
-        return "\(headText) \(resultText)\(genericWhereClauseText) \(tokenize(declaration.body, node: declaration))"
+        let attrsTokens = tokenize(declaration.attributes, node: declaration)
+        let modifierTokens = tokenize(declaration.modifiers, node: declaration)
+        let genericParameterClauseTokens = declaration.genericParameterClause.map { tokenize($0, node: declaration) } ?? []
+        let parameterTokens = declaration.newToken(.startOfScope, "(") +
+            declaration.parameterList.map { tokenize($0, node: declaration) }.joined(token: declaration.newToken(.delimiter, ", ")) +
+            declaration.newToken(.endOfScope, ")")
+
+        let headTokens = [
+            attrsTokens,
+            modifierTokens,
+            [declaration.newToken(.keyword, "subscript")],
+            genericParameterClauseTokens,
+            parameterTokens
+        ].joined(token: declaration.newToken(.space, " "))
+
+        let resultAttrsTokens = tokenize(declaration.resultAttributes, node: declaration)
+        let resultTokens = [
+            [declaration.newToken(.symbol, "->")],
+            resultAttrsTokens,
+            tokenize(declaration.resultType, node: declaration)
+        ].joined(token: declaration.newToken(.space, " "))
+
+        let genericWhereClauseTokens = declaration.genericWhereClause.map { tokenize($0, node: declaration) } ?? []
+
+        return [
+            headTokens,
+            resultTokens,
+            genericWhereClauseTokens,
+            tokenize(declaration.body, node: declaration)
+        ].joined(token: declaration.newToken(.space, " "))
     }
     
     open func tokenize(_ body: SubscriptDeclaration.Body, node: ASTNode) -> [Token] {
@@ -732,33 +804,61 @@ extension Tokenizer {
     }
     
     open func tokenize(_ declaration: TypealiasDeclaration) -> [Token] {
-        let attrsText = declaration.attributes.isEmpty ? "" : "\(tokenize(declaration.attributes, node: declaration)) "
-        let modifierText = declaration.accessLevelModifier.map({ "\(tokenize($0)) " }) ?? ""
-        let genericText = declaration.generic.map { tokenize($0, node: declaration) } ?? ""
-        let assignmentText = tokenize(declaration.assignment, node: declaration)
-        return "\(attrsText)\(modifierText)typealias \(declaration.name)\(genericText) = \(assignmentText)"
+        let attrsTokens = tokenize(declaration.attributes, node: declaration)
+        let modifierTokens = declaration.accessLevelModifier.map { tokenize($0, node: declaration) } ?? []
+        let genericTokens = declaration.generic.map { tokenize($0, node: declaration) } ?? []
+        let assignmentTokens = tokenize(declaration.assignment, node: declaration)
+
+        return [
+            attrsTokens,
+            modifierTokens,
+            [declaration.newToken(.keyword, "typealias")],
+            [declaration.newToken(.identifier, declaration.name)],
+            genericTokens,
+            [declaration.newToken(.symbol, "=")],
+            assignmentTokens
+        ].joined(token: declaration.newToken(.space, " "))
     }
     
     open func tokenize(_ declaration: VariableDeclaration) -> [Token] {
-        let attrsText = declaration.attributes.isEmpty ? "" : "\(tokenize(declaration.attributes, node: declaration)) "
-        let modifiersText = declaration.modifiers.isEmpty ? "" : "\(tokenize(declaration.modifiers)) "
-        return "\(attrsText)\(modifiersText)var \(tokenize(declaration.body, node: declaration))"
+        let attrsTokens = tokenize(declaration.attributes, node: declaration)
+        let modifierTokens = tokenize(declaration.modifiers, node: declaration)
+
+        return [
+            attrsTokens,
+            modifierTokens,
+            [declaration.newToken(.keyword, "var")],
+            tokenize(declaration.body, node: declaration)
+        ].joined(token: declaration.newToken(.space, " "))
     }
     
     open func tokenize(_ body: VariableDeclaration.Body, node: ASTNode) -> [Token] {
         switch body {
         case .initializerList(let inits):
-            return inits.map { tokenize($0, node: node) }.joined(separator: ", ")
+            return inits.map { tokenize($0, node: node) }.joined(token: body.newToken(.delimiter, ", ", node))
         case let .codeBlock(name, typeAnnotation, codeBlock):
-            return "\(name)\(typeAnnotation) \(tokenize(codeBlock))"
+            return body.newToken(.identifier, name, node) +
+                tokenize(typeAnnotation, node: node) +
+                body.newToken(.space, " ", node) +
+                tokenize(codeBlock)
         case let .getterSetterBlock(name, typeAnnotation, block):
-            return "\(name)\(typeAnnotation) \(tokenize(block, node: node))"
+            return body.newToken(.identifier, name, node) +
+                tokenize(typeAnnotation, node: node) +
+                body.newToken(.space, " ", node) +
+                tokenize(block, node: node)
         case let .getterSetterKeywordBlock(name, typeAnnotation, block):
-            return "\(name)\(typeAnnotation) \(tokenize(block, node: node))"
+            return body.newToken(.identifier, name, node) +
+                tokenize(typeAnnotation, node: node) +
+                body.newToken(.space, " ", node) +
+                tokenize(block, node: node)
         case let .willSetDidSetBlock(name, typeAnnotation, initExpr, block):
-            let typeAnnoStr = typeAnnotation.map { tokenize($0, node: node) } ?? ""
-            let initStr = initExpr.map({ " = \(tokenize($0))" }) ?? ""
-            return "\(name)\(typeAnnoStr)\(initStr) \(tokenize(block, node: node))"
+            let typeAnnoTokens = typeAnnotation.map { tokenize($0, node: node) } ?? []
+            let initTokens = initExpr.map { body.newToken(.symbol, " = ", node) + tokenize($0) } ?? []
+            return [body.newToken(.identifier, name, node)] +
+                typeAnnoTokens +
+                initTokens +
+                body.newToken(.space, " ", node) +
+                tokenize(block, node: node)
         }
     }
     
@@ -844,3 +944,6 @@ extension MutationModifier: ASTTokenizable {}
 extension FunctionSignature: ASTTokenizable {}
 extension ProtocolDeclaration.MethodMember: ASTTokenizable {}
 extension ProtocolDeclaration.PropertyMember: ASTTokenizable {}
+extension ProtocolDeclaration.SubscriptMember: ASTTokenizable {}
+extension ProtocolDeclaration.AssociativityTypeMember: ASTTokenizable {}
+extension VariableDeclaration.Body: ASTTokenizable {}

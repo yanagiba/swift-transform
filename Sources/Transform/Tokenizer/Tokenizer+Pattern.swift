@@ -124,10 +124,6 @@ extension Tokenizer {
             pattern.typeAnnotation.map { tokenize($0, node: node) }
     }
     
-    // TODO: Delete temporal generates
-    open func generate(_ pattern: Pattern, node: ASTNode) -> String {
-        return tokenize(pattern, node: node).joinedValues()
-    }
 }
 
 extension PatternBase: ASTTokenizable {}

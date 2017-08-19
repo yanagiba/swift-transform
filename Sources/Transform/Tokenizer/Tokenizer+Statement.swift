@@ -315,19 +315,6 @@ extension Tokenizer {
         return [argument.newToken(.identifier, argument.textDescription, node)]
     }
     
-    
-    // TODO: Delete temporal generates
-    open func generate(_ statement: Statement, node: ASTNode) -> String {
-        return tokenize(statement, node: node).joinedValues()
-    }
-    open func generate(_ statements: [Statement], node: ASTNode) -> String {
-        return tokenize(statements, node: node).joinedValues()
-    }
-    open func generate(_ statement: CompilerControlStatement) -> String {
-       return tokenize(statement).joinedValues()
-    }
-
-
 }
 
 extension DoStatement.CatchClause: ASTTokenizable {}
