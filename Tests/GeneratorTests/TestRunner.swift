@@ -106,7 +106,10 @@ public func prettyFirstDifferenceBetweenStrings(_ s1: String, _ s2: String) -> S
 /// :param: s2 Second string used in generation of firstDifferenceResult
 ///
 /// :returns: a printable string, possibly containing significant whitespace and newlines
-public func prettyDescriptionOfFirstDifferenceResult(_ firstDifferenceResult: FirstDifferenceResult, _ s1: String, _ s2: String) -> String {
+public func prettyDescriptionOfFirstDifferenceResult(
+    _ firstDifferenceResult: FirstDifferenceResult,
+    _ s1: String,
+    _ s2: String) -> String {
 
     func diffString(_ index: Int, _ s1: String, _ s2: String) -> String {
         let markerArrow: Character = "👉"
