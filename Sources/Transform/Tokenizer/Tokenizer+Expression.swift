@@ -163,7 +163,8 @@ extension Tokenizer {
     open func tokenize(_ expression: ClosureExpression.Signature, node: ASTNode) -> [Token] {
         let captureTokens = expression.captureList.map { captureList in
             return expression.newToken(.startOfScope, "[", node) +
-                captureList.map { tokenize($0, node: node) }.joined(token: expression.newToken(.delimiter, ", ", node)) +
+                captureList.map { tokenize($0, node: node) }
+                    .joined(token: expression.newToken(.delimiter, ", ", node)) +
                 expression.newToken(.endOfScope, "]", node)
         } ?? []
         let parameterTokens = expression.parameterClause.map { tokenize($0, node: node) } ?? []
@@ -180,17 +181,22 @@ extension Tokenizer {
     open func tokenize(_ expression: ExplicitMemberExpression) -> [Token] {
         switch expression.kind {
         case let .tuple(postfixExpr, index):
-            return tokenize(postfixExpr) + expression.newToken(.delimiter, ".") + expression.newToken(.number, "\(index)")
+            return tokenize(postfixExpr) + expression.newToken(.delimiter, ".") +
+                expression.newToken(.number, "\(index)")
         case let .namedType(postfixExpr, identifier):
-            return tokenize(postfixExpr) + expression.newToken(.delimiter, ".") + expression.newToken(.identifier, identifier)
+            return tokenize(postfixExpr) + expression.newToken(.delimiter, ".") +
+                expression.newToken(.identifier, identifier)
         case let .generic(postfixExpr, identifier, genericArgumentClause):
-            return tokenize(postfixExpr) + expression.newToken(.delimiter, ".") + expression.newToken(.identifier, identifier) +
-                    tokenize(genericArgumentClause, node: expression)
+            return tokenize(postfixExpr) + expression.newToken(.delimiter, ".") +
+                expression.newToken(.identifier, identifier) +
+                tokenize(genericArgumentClause, node: expression)
         case let .argument(postfixExpr, identifier, argumentNames):
             let argumentTokens = argumentNames.isEmpty ? nil : argumentNames.flatMap {
                 expression.newToken(.identifier, $0) + expression.newToken(.delimiter, ":")
             }.prefix(with: expression.newToken(.startOfScope, "(")).suffix(with: expression.newToken(.endOfScope, ")"))
-            return tokenize(postfixExpr) + expression.newToken(.delimiter, ".") + expression.newToken(.identifier, identifier) + argumentTokens
+            return tokenize(postfixExpr) + expression.newToken(.delimiter, ".") +
+                expression.newToken(.identifier, identifier) +
+                argumentTokens
         }
     }
     
@@ -209,7 +215,8 @@ extension Tokenizer {
         }
         var trailingTokens = [Token]()
         if let trailingClosure = expression.trailingClosure {
-            trailingTokens = trailingClosure.newToken(.space, " ", expression) + tokenize(trailingClosure, node: expression)
+            trailingTokens = trailingClosure.newToken(.space, " ", expression) +
+                tokenize(trailingClosure, node: expression)
         }
         return tokenize(expression.postfixExpression) + parameterTokens + trailingTokens
     }
@@ -399,7 +406,8 @@ extension Tokenizer {
     open func tokenize(_ expression: SubscriptExpression) -> [Token] {
         return tokenize(expression.postfixExpression) +
                 expression.newToken(.startOfScope, "[") +
-            expression.arguments.map { tokenize($0, node: expression) }.joined(token: expression.newToken(.delimiter, ", ")) +
+            expression.arguments.map { tokenize($0, node: expression) }
+                .joined(token: expression.newToken(.delimiter, ", ")) +
                 expression.newToken(.endOfScope, "]")
     }
     

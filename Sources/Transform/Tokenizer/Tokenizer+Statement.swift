@@ -208,7 +208,8 @@ extension Tokenizer {
         if !statement.cases.isEmpty {
             casesTokens = [
                 [statement.newToken(.startOfScope, "{")],
-                statement.cases.map { tokenize($0, node: statement) }.joined(token: statement.newToken(.linebreak, "\n")),
+                statement.cases.map { tokenize($0, node: statement) }
+                    .joined(token: statement.newToken(.linebreak, "\n")),
                 [statement.newToken(.endOfScope, "}")]
             ].joined(token: statement.newToken(.linebreak, "\n"))
         }
@@ -307,7 +308,8 @@ extension Tokenizer {
         return
             condition.newToken(.keyword, "#available", node) +
             condition.newToken(.startOfScope, "(", node) +
-            condition.arguments.map { tokenize($0, node: node) }.joined(token: condition.newToken(.delimiter, ", ", node)) +
+            condition.arguments.map { tokenize($0, node: node) }
+                .joined(token: condition.newToken(.delimiter, ", ", node)) +
             condition.newToken(.endOfScope, ")", node)
     }
     

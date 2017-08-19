@@ -45,11 +45,14 @@ extension Tokenizer {
         case .token(let tokenString):
             return [token.newToken(.identifier, tokenString, node)]
         case .parenthesis(let tokens):
-            return token.newToken(.startOfScope, "(", node) + tokenize(tokens, node: node) + token.newToken(.endOfScope, ")", node)
+            return token.newToken(.startOfScope, "(", node) +
+                tokenize(tokens, node: node) + token.newToken(.endOfScope, ")", node)
         case .square(let tokens):
-            return token.newToken(.startOfScope, "[", node) + tokenize(tokens, node: node) + token.newToken(.endOfScope, "]", node)
+            return token.newToken(.startOfScope, "[", node) +
+                tokenize(tokens, node: node) + token.newToken(.endOfScope, "]", node)
         case .brace(let tokens):
-            return token.newToken(.startOfScope, "{", node) + tokenize(tokens, node: node) + token.newToken(.endOfScope, "}", node)
+            return token.newToken(.startOfScope, "{", node) +
+                tokenize(tokens, node: node) + token.newToken(.endOfScope, "}", node)
         }
     }
     

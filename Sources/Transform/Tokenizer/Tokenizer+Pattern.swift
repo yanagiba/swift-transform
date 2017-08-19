@@ -75,7 +75,8 @@ extension Tokenizer {
     open func tokenize(_ pattern: TuplePattern, node: ASTNode) -> [Token] {
         return
             pattern.newToken(.startOfScope, "(", node) +
-            pattern.elementList.map { tokenize($0, node: node) }.joined(token: pattern.newToken(.delimiter, ", ", node)) +
+            pattern.elementList.map { tokenize($0, node: node) }
+                .joined(token: pattern.newToken(.delimiter, ", ", node)) +
             pattern.newToken(.endOfScope, ")", node) +
             pattern.typeAnnotation.map { tokenize($0, node: node) }
     }
