@@ -7,7 +7,7 @@
         "state": {
           "branch": null,
           "revision": "a02d4faf11539b121cc007210a0141478fa3d924",
-          "version": null
+          "version": "0.1.0"
         }
       },
       {
@@ -15,8 +15,8 @@
         "repositoryURL": "https://github.com/yanagiba/swift-ast",
         "state": {
           "branch": null,
-          "revision": "875d28b94ec6f063da9fb6fa2353f3b06ecdc538",
-          "version": null
+          "revision": "87888a78bc264a57536e6c628f4ad4ad02eadd06",
+          "version": "0.4.1"
         }
       }
     ]

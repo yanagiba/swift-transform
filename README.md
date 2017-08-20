@@ -58,7 +58,7 @@ make test
 
 ## Contact
 
-Ryuichi Saito
+Ryuichi Sai
 
 - http://github.com/ryuichis
 - ryuichi@yanagiba.org
