@@ -17,8 +17,7 @@
 import AST
 
 extension Tokenizer {
-    // TODO: Remove node parameter because statement is a node
-    open func tokenize(_ statement: Statement, node: ASTNode) -> [Token] { /*
+    open func tokenize(_ statement: Statement) -> [Token] { /*
       swift-lint:suppress(high_cyclomatic_complexity) */
         switch statement {
         case let decl as Declaration:
@@ -56,7 +55,14 @@ extension Tokenizer {
         case let stmt as WhileStatement:
             return tokenize(stmt)
         default:
-            return [node.newToken(.identifier, statement.textDescription)]
+          return [
+            Token(
+              origin: statement as? ASTTokenizable,
+              node: statement as? ASTNode,
+              kind: .identifier,
+              value: statement.textDescription
+            ),
+          ]
         }
     }
 
@@ -121,7 +127,7 @@ extension Tokenizer {
         let catchTokens = [statement.newToken(.keyword, "catch", node)]
         let patternTokens = statement.pattern.map { tokenize($0, node: node) } ?? []
         let whereKeyword = statement.whereExpression.map { _ in [statement.newToken(.keyword, "where", node)] } ?? []
-        let whereTokens = statement.whereExpression.map { tokenize($0, node: node) } ?? []
+        let whereTokens = statement.whereExpression.map { tokenize($0) } ?? []
         let codeTokens = tokenize(statement.codeBlock)
         return [
             catchTokens,
@@ -185,7 +191,7 @@ extension Tokenizer {
         return
             statement.newToken(.identifier, statement.labelName, statement) +
             statement.newToken(.delimiter, ": ") +
-            tokenize(statement.statement, node: statement)
+            tokenize(statement.statement)
     }
 
     open func tokenize(_ statement: RepeatWhileStatement) -> [Token] {
@@ -246,7 +252,7 @@ extension Tokenizer {
         return [
             tokenize(statement.pattern, node: node),
             statement.whereExpression.map { _ in [statement.newToken(.keyword, "where", node)] } ?? [],
-            statement.whereExpression.map { tokenize($0, node: node) } ?? []
+            statement.whereExpression.map { tokenize($0) } ?? []
         ].joined(token: statement.newToken(.space, " ", node))
     }
 
@@ -268,7 +274,7 @@ extension Tokenizer {
     // MARK: Utils
 
     open func tokenize(_ statements: [Statement], node: ASTNode) -> [Token] {
-        return statements.map { tokenize($0, node: node) }.joined(token: node.newToken(.linebreak, "\n"))
+        return statements.map(tokenize).joined(token: node.newToken(.linebreak, "\n"))
     }
 
     open func tokenize(_ conditions: ConditionList, node: ASTNode) -> [Token] {

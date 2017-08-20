@@ -218,7 +218,7 @@ extension Tokenizer {
         var trailingTokens = [Token]()
         if let trailingClosure = expression.trailingClosure {
             trailingTokens = trailingClosure.newToken(.space, " ", expression) +
-                tokenize(trailingClosure, node: expression)
+                tokenize(trailingClosure)
         }
         return tokenize(expression.postfixExpression) + parameterTokens + trailingTokens
     }

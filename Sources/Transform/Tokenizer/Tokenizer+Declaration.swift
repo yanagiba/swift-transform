@@ -58,7 +58,7 @@ extension Tokenizer {
     }
 
     open func tokenize(_ topLevelDeclaration: TopLevelDeclaration) -> [Token] {
-        return topLevelDeclaration.statements.map { tokenize($0, node: topLevelDeclaration) }
+        return topLevelDeclaration.statements.map(tokenize)
             .joined(token: topLevelDeclaration.newToken(.linebreak, "\n")) +
             topLevelDeclaration.newToken(.linebreak, "\n")
     }
@@ -70,7 +70,7 @@ extension Tokenizer {
         let lineBreakToken = codeBlock.newToken(.linebreak, "\n")
         return [
             [codeBlock.newToken(.startOfScope, "{")],
-            indent(codeBlock.statements.map { tokenize($0, node: codeBlock) }.joined(token: lineBreakToken)),
+            indent(codeBlock.statements.map(tokenize).joined(token: lineBreakToken)),
             [codeBlock.newToken(.endOfScope, "}")]
         ].joined(token: lineBreakToken)
     }
