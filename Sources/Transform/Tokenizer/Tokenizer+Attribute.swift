@@ -45,22 +45,17 @@ extension Tokenizer {
         case .token(let tokenString):
             return [token.newToken(.identifier, tokenString, node)]
         case .parenthesis(let tokens):
-            return token.newToken(.startOfScope, "(", node) + tokenize(tokens, node: node) + token.newToken(.endOfScope, ")", node)
+            return token.newToken(.startOfScope, "(", node) +
+                tokenize(tokens, node: node) + token.newToken(.endOfScope, ")", node)
         case .square(let tokens):
-            return token.newToken(.startOfScope, "[", node) + tokenize(tokens, node: node) + token.newToken(.endOfScope, "]", node)
+            return token.newToken(.startOfScope, "[", node) +
+                tokenize(tokens, node: node) + token.newToken(.endOfScope, "]", node)
         case .brace(let tokens):
-            return token.newToken(.startOfScope, "{", node) + tokenize(tokens, node: node) + token.newToken(.endOfScope, "}", node)
+            return token.newToken(.startOfScope, "{", node) +
+                tokenize(tokens, node: node) + token.newToken(.endOfScope, "}", node)
         }
     }
-
-    // TODO: Delete generate methods
-
-    open func generate(_ attributes: Attributes, node: ASTNode) -> String {
-        return tokenize(attributes, node: node).joinedValues()
-    }
-    open func generate(_ attribute: Attribute, node: ASTNode) -> String {
-       return tokenize(attribute, node: node).joinedValues()
-    }
+    
 }
 extension Attribute: ASTTokenizable {}
 extension Attribute.ArgumentClause: ASTTokenizable {}

@@ -75,7 +75,8 @@ extension Tokenizer {
     open func tokenize(_ pattern: TuplePattern, node: ASTNode) -> [Token] {
         return
             pattern.newToken(.startOfScope, "(", node) +
-            pattern.elementList.map { tokenize($0, node: node) }.joined(token: pattern.newToken(.delimiter, ", ", node)) +
+            pattern.elementList.map { tokenize($0, node: node) }
+                .joined(token: pattern.newToken(.delimiter, ", ", node)) +
             pattern.newToken(.endOfScope, ")", node) +
             pattern.typeAnnotation.map { tokenize($0, node: node) }
     }
@@ -123,11 +124,7 @@ extension Tokenizer {
         return pattern.newToken(.keyword, "_", node) +
             pattern.typeAnnotation.map { tokenize($0, node: node) }
     }
-
-    // TODO: Delete temporal generates
-    open func generate(_ pattern: Pattern, node: ASTNode) -> String {
-        return tokenize(pattern, node: node).joinedValues()
-    }
+    
 }
 
 extension PatternBase: ASTTokenizable {}

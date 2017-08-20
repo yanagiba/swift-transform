@@ -25,7 +25,8 @@ open class Tokenizer {
     }
 
     open func indent(_ tokens: [Token]) -> [Token] {
-        return tokens.reduce([]) { (result, token) -> [Token] in
+        guard let node = tokens.first?.node else { return tokens }
+        return tokens.reduce([node.newToken(.indentation, indentation)]) { (result, token) -> [Token] in
             return result + token + (token.kind == .linebreak ? token.node?.newToken(.indentation, indentation) : nil)
         }
     }

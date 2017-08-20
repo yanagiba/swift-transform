@@ -37,7 +37,8 @@ extension Tokenizer {
     open func tokenize(_ clause: GenericParameterClause, node: ASTNode) -> [Token] {
         return
             clause.newToken(.startOfScope, "<", node) +
-            clause.parameterList.map { tokenize($0, node: node) }.joined(token: clause.newToken(.delimiter, ", ", node)) +
+            clause.parameterList.map { tokenize($0, node: node) }
+                .joined(token: clause.newToken(.delimiter, ", ", node)) +
             clause.newToken(.endOfScope, ">", node)
     }
 
@@ -63,28 +64,17 @@ extension Tokenizer {
     open func tokenize(_ clause: GenericWhereClause, node: ASTNode) -> [Token] {
         return clause.newToken(.keyword, "where", node) +
             clause.newToken(.space, " ", node) +
-            clause.requirementList.map { tokenize($0, node: node) }.joined(token: clause.newToken(.delimiter, ", ", node))
+            clause.requirementList.map { tokenize($0, node: node) }
+                .joined(token: clause.newToken(.delimiter, ", ", node))
     }
 
     open func tokenize(_ clause: GenericArgumentClause, node: ASTNode) -> [Token] {
         return clause.newToken(.startOfScope, "<", node) +
-                clause.argumentList.map { tokenize($0, node: node) }.joined(token: clause.newToken(.delimiter, ", ", node)) +
+                clause.argumentList.map { tokenize($0, node: node) }
+                    .joined(token: clause.newToken(.delimiter, ", ", node)) +
                 clause.newToken(.endOfScope, ">", node)
     }
-
-    // TODO: Delete generate methods
-
-    open func generate(_ clause: GenericParameterClause, node: ASTNode) -> String {
-        return tokenize(clause, node: node).joinedValues()
-    }
-
-    open func generate(_ clause: GenericWhereClause, node: ASTNode) -> String {
-        return tokenize(clause, node: node).joinedValues()
-    }
-
-    open func generate(_ clause: GenericArgumentClause, node: ASTNode) -> String {
-        return tokenize(clause, node: node).joinedValues()
-    }
+    
 }
 
 

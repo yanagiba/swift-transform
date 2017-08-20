@@ -70,7 +70,8 @@ extension Tokenizer {
     open func tokenize(_ type: FunctionType, node: ASTNode) -> [Token] {
         let attrs = tokenize(type.attributes, node: node)
         let args = type.newToken(.startOfScope, "(", node) +
-                    type.arguments.map { tokenize($0, node: node) }.joined(token: type.newToken(.delimiter, ", ", node)) +
+                    type.arguments.map { tokenize($0, node: node) }
+                        .joined(token: type.newToken(.delimiter, ", ", node)) +
                     type.newToken(.endOfScope, ")", node)
 
         let throwTokens = tokenize(type.throwsKind, node: node)
@@ -130,7 +131,8 @@ extension Tokenizer {
             return
                 type.newToken(.keyword, "protocol", node) +
                 type.newToken(.startOfScope, "<", node) +
-                type.protocolTypes.map { tokenize($0, node: node) }.joined(token: type.newToken(.delimiter, ", ", node)) +
+                type.protocolTypes.map { tokenize($0, node: node) }
+                    .joined(token: type.newToken(.delimiter, ", ", node)) +
                 type.newToken(.endOfScope, ">", node)
         } else {
             return type.protocolTypes.map { tokenize($0, node: node) }
@@ -190,21 +192,7 @@ extension Tokenizer {
         return type.newToken(.symbol, ": ", node) +
                 inheritanceTokens.joined(token: type.newToken(.delimiter, ", ", node))
     }
-
-
-    // TODO: Delete temporal generates
-    open func generate(_ type: Type, node: ASTNode) -> String {
-        return tokenize(type, node: node).joinedValues()
-    }
-
-    open func generate(_ type: TypeAnnotation, node: ASTNode) -> String {
-        return tokenize(type, node: node).joinedValues()
-    }
-
-    open func generate(_ type: TypeInheritanceClause, node: ASTNode) -> String {
-        return tokenize(type, node: node).joinedValues()
-    }
-
+    
 }
 
 extension TypeBase: ASTTokenizable {}

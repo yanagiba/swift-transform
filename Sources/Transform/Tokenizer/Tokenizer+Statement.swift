@@ -208,7 +208,8 @@ extension Tokenizer {
         if !statement.cases.isEmpty {
             casesTokens = [
                 [statement.newToken(.startOfScope, "{")],
-                statement.cases.map { tokenize($0, node: statement) }.joined(token: statement.newToken(.linebreak, "\n")),
+                statement.cases.map { tokenize($0, node: statement) }
+                    .joined(token: statement.newToken(.linebreak, "\n")),
                 [statement.newToken(.endOfScope, "}")]
             ].joined(token: statement.newToken(.linebreak, "\n"))
         }
@@ -228,17 +229,15 @@ extension Tokenizer {
                 statement.newToken(.space, " ", node) +
                 itemList.map { tokenize($0, node: node) }.joined(token: statement.newToken(.delimiter, ", ", node)) +
                 statement.newToken(.delimiter, ":", node) +
-                indent(
-                    statement.newToken(.linebreak, "\n", node) +
-                    tokenize(stmts, node: node))
+                statement.newToken(.linebreak, "\n", node) +
+                indent(tokenize(stmts, node: node))
 
         case .default(let stmts):
             return
                 statement.newToken(.keyword, "default", node) +
                 statement.newToken(.delimiter, ":", node) +
-                indent(
-                    statement.newToken(.linebreak, "\n", node) +
-                    tokenize(stmts, node: node))
+                statement.newToken(.linebreak, "\n", node) +
+                indent(tokenize(stmts, node: node))
         }
     }
 
@@ -309,27 +308,15 @@ extension Tokenizer {
         return
             condition.newToken(.keyword, "#available", node) +
             condition.newToken(.startOfScope, "(", node) +
-            condition.arguments.map { tokenize($0, node: node) }.joined(token: condition.newToken(.delimiter, ", ", node)) +
+            condition.arguments.map { tokenize($0, node: node) }
+                .joined(token: condition.newToken(.delimiter, ", ", node)) +
             condition.newToken(.endOfScope, ")", node)
     }
 
     open func tokenize(_ argument: AvailabilityCondition.Argument, node: ASTNode) -> [Token] {
         return [argument.newToken(.identifier, argument.textDescription, node)]
     }
-
-
-    // TODO: Delete temporal generates
-    open func generate(_ statement: Statement, node: ASTNode) -> String {
-        return tokenize(statement, node: node).joinedValues()
-    }
-    open func generate(_ statements: [Statement], node: ASTNode) -> String {
-        return tokenize(statements, node: node).joinedValues()
-    }
-    open func generate(_ statement: CompilerControlStatement) -> String {
-       return tokenize(statement).joinedValues()
-    }
-
-
+    
 }
 
 extension DoStatement.CatchClause: ASTTokenizable {}
