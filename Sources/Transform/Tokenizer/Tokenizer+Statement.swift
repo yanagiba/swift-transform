@@ -18,7 +18,8 @@ import AST
 
 extension Tokenizer {
     // TODO: Remove node parameter because statement is a node
-    open func tokenize(_ statement: Statement, node: ASTNode) -> [Token] {
+    open func tokenize(_ statement: Statement, node: ASTNode) -> [Token] { /*
+      swift-lint:suppress(high_cyclomatic_complexity) */
         switch statement {
         case let decl as Declaration:
             return tokenize(decl)
@@ -316,7 +317,7 @@ extension Tokenizer {
     open func tokenize(_ argument: AvailabilityCondition.Argument, node: ASTNode) -> [Token] {
         return [argument.newToken(.identifier, argument.textDescription, node)]
     }
-    
+
 }
 
 extension DoStatement.CatchClause: ASTTokenizable {}

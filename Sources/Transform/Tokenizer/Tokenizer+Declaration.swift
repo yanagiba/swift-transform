@@ -17,8 +17,7 @@
 import AST
 
 extension Tokenizer {
-        
-    open func tokenize(_ declaration: Declaration) -> [Token] {
+    open func tokenize(_ declaration: Declaration) -> [Token] { // swift-lint:suppress(high_cyclomatic_complexity)
         switch declaration {
         case let decl as ClassDeclaration:
             return tokenize(decl)
@@ -890,7 +889,8 @@ extension Tokenizer {
             .joined(token: node.newToken(.space, " "))
     }
 
-    open func tokenize(_ modifier: DeclarationModifier, node: ASTNode) -> [Token] {
+    open func tokenize(_ modifier: DeclarationModifier, node: ASTNode) -> [Token] { /*
+      swift-lint:suppress(high_cyclomatic_complexity) */
         switch modifier {
         case .class:
             return [modifier.newToken(.keyword, "class", node)]

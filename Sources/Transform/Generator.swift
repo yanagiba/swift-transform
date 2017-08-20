@@ -43,7 +43,7 @@ open class Generator {
 
   // MARK: Statements
 
-  open func generate(_ statement: Statement) -> String {
+  open func generate(_ statement: Statement) -> String { // swift-lint:suppress(high_cyclomatic_complexity)
     switch statement {
     case let decl as Declaration:
       return generate(decl)
@@ -161,7 +161,7 @@ open class Generator {
 
   // MARK: Declarations
 
-  open func generate(_ declaration: Declaration) -> String {
+  open func generate(_ declaration: Declaration) -> String { // swift-lint:suppress(high_cyclomatic_complexity)
     switch declaration {
     case let decl as ClassDeclaration:
       return generate(decl)
@@ -275,7 +275,8 @@ open class Generator {
 
   // MARK: Statements
 
-  open func generate(_ expression: Expression) -> String {
+  open func generate(_ expression: Expression) -> String { /*
+    swift-lint:suppress(high_cyclomatic_complexity, high_ncss) */
     switch expression {
     case let expr as AssignmentOperatorExpression:
       return generate(expr)

@@ -22,7 +22,8 @@ extension Tokenizer {
         return tokenize(expression)
     }
 
-    open func tokenize(_ expression: Expression) -> [Token] {
+    open func tokenize(_ expression: Expression) -> [Token] { /*
+      swift-lint:suppress(high_cyclomatic_complexity, high_ncss) */
         switch expression {
         case let expr as AssignmentOperatorExpression:
             return tokenize(expr)
