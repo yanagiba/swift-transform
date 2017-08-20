@@ -14,6 +14,20 @@
    limitations under the License.
 */
 
-public let SWIFT_TRANSFORM = "swift-transform"
-public let SWIFT_TRANSFORM_VERSION = "0.1.0"
-public let SWIFT_AST_VERSION = "0.4.1"
+import Foundation
+
+open class Tokenizer {
+    let options: [String: Any]?
+    let indentation = "  "
+
+    public init(options: [String: Any]? = nil) {
+        self.options = options
+    }
+
+    open func indent(_ tokens: [Token]) -> [Token] {
+        guard let node = tokens.first?.node else { return tokens }
+        return tokens.reduce([node.newToken(.indentation, indentation)]) { (result, token) -> [Token] in
+            return result + token + (token.kind == .linebreak ? token.node?.newToken(.indentation, indentation) : nil)
+        }
+    }
+}

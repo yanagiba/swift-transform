@@ -1,5 +1,5 @@
 /*
-   Copyright 2015-2017 Ryuichi Laboratories and the Yanagiba project contributors
+   Copyright 2017 Ryuichi Laboratories and the Yanagiba project contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -14,10 +14,16 @@
    limitations under the License.
 */
 
-import Bocho
+import AST
 
-extension String {
-  var indent: String {
-    return indented
-  }
+extension Tokenizer {
+    open func tokenize(_ origin: ThrowsKind, node: ASTNode) -> [Token] {
+        switch origin {
+        case .nothrowing: return []
+        case .throwing: return [origin.newToken(.keyword, "throws", node)]
+        case .rethrowing: return [origin.newToken(.keyword, "rethrows", node)]
+        }
+    }
 }
+
+extension ThrowsKind: ASTTokenizable {}

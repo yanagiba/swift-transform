@@ -1,5 +1,5 @@
 /*
-   Copyright 2015-2017 Ryuichi Laboratories and the Yanagiba project contributors
+   Copyright 2017 Ryuichi Laboratories and the Yanagiba project contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -14,10 +14,20 @@
    limitations under the License.
 */
 
-import Bocho
+import XCTest
 
-extension String {
-  var indent: String {
-    return indented
-  }
+@testable import AST
+@testable import Transform
+
+class TokenizerTests : XCTestCase {
+    private let _tokenizer = Tokenizer()
+
+    func testEmptyTopLevelDeclaration() {
+        let tokens = _tokenizer.tokenize(TopLevelDeclaration())
+        XCTAssertEqual(tokens.joinedValues(), "\n")
+    }
+
+    static var allTests = [
+        ("testEmptyTopLevelDeclaration", testEmptyTopLevelDeclaration),
+        ]
 }

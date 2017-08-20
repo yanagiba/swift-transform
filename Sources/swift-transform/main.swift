@@ -85,7 +85,9 @@ if sourceFiles.count > 1, case .standardOutput = output {
 
 let commonPathPrefix = sourceFiles.map({ $0.identifier }).commonPathPrefix
 
-let generator = Generator(formats: formats)
+let tokenizer = Tokenizer(options: formats)
+let tokenJoiner = TokenJoiner(options: formats)
+let generator = Generator(options: formats, tokenizer: tokenizer, tokenJoiner: tokenJoiner)
 let driver = Driver(generator: generator)
 
 for sourceFile in sourceFiles {

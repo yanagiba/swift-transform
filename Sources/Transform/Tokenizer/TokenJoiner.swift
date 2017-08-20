@@ -14,14 +14,14 @@
    limitations under the License.
 */
 
-import AST
+open class TokenJoiner {
+  let _options: [String: Any]?
 
-extension Generator {
-  open func generate(_ node: ThrowsKind) -> String {
-    switch node {
-    case .nothrowing: return ""
-    case .throwing: return "throws"
-    case .rethrowing: return "rethrows"
-    }
+  public init(options: [String: Any]? = nil) {
+    _options = options
+  }
+
+  open func join(tokens: [Token]) -> String {
+    return tokens.joinedValues()
   }
 }

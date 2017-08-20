@@ -14,6 +14,23 @@
    limitations under the License.
 */
 
-public let SWIFT_TRANSFORM = "swift-transform"
-public let SWIFT_TRANSFORM_VERSION = "0.1.0"
-public let SWIFT_AST_VERSION = "0.4.1"
+import Foundation
+import AST
+
+public protocol ASTTokenizable {}
+
+extension ASTTokenizable where Self : ASTNode {
+    func newToken(_ kind: Token.Kind, _ value: String) -> Token {
+        return Token(origin: self, node: self, kind: kind, value: value)
+    }
+}
+
+extension ASTTokenizable {
+    func newToken(_ kind: Token.Kind, _ value: String, _ node: ASTNode) -> Token {
+        return Token(origin: self, node: node, kind: kind, value: value)
+    }
+}
+
+
+// TODO: Remove and make it per element?
+extension ASTNode: ASTTokenizable {}
