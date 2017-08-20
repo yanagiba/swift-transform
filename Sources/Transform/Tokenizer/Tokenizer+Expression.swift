@@ -62,6 +62,8 @@ extension Tokenizer {
             return tokenize(expr)
         case let expr as SelfExpression:
             return tokenize(expr)
+        case let expr as SequenceExpression:
+            return tokenize(expr)
         case let expr as SubscriptExpression:
             return tokenize(expr)
         case let expr as SuperclassExpression:
@@ -94,7 +96,7 @@ extension Tokenizer {
         return [
             tokenize(expression.leftExpression),
             [expression.newToken(.symbol, expression.binaryOperator)],
-            tokenize(expression.rightExpression)
+            tokenize(expression.rightExpression),
         ].joined(token: expression.newToken(.space, " "))
     }
 
@@ -126,13 +128,13 @@ extension Tokenizer {
         return [expression.newToken(.startOfScope, "{")] +
             signatureTokens +
             stmtsTokens +
-            expression.newToken(.endOfScope, "}")        
+            expression.newToken(.endOfScope, "}")
     }
 
     open func tokenize(_ expression: ClosureExpression.Signature.CaptureItem, node: ASTNode) -> [Token] {
         return [
             expression.specifier.map { tokenize($0, node: node) } ?? [],
-            tokenize(expression.expression)
+            tokenize(expression.expression),
         ].joined(token: expression.newToken(.space, " ", node))
     }
 
@@ -158,7 +160,7 @@ extension Tokenizer {
                 (expression.isVarargs ? typeAnnotation.newToken(.symbol, "...", node) : nil)
             }
     }
-    
+
     open func tokenize(_ expression: ClosureExpression.Signature, node: ASTNode) -> [Token] {
         let captureTokens = expression.captureList.map { captureList in
             return expression.newToken(.startOfScope, "[", node) +
@@ -402,6 +404,55 @@ extension Tokenizer {
         }
     }
 
+    open func tokenize(_ element: SequenceExpression.Element, node: ASTNode) -> [Token] {
+      switch element {
+      case .expression(let expr):
+        return tokenize(expr)
+      case .assignmentOperator:
+        return [node.newToken(.symbol, "=")]
+      case .binaryOperator(let op):
+        return [node.newToken(.symbol, op)]
+      case .ternaryConditionalOperator(let expr):
+        return [
+          [node.newToken(.symbol, "?")],
+          tokenize(expr),
+          [node.newToken(.symbol, ":")],
+        ].joined(token: node.newToken(.space, " "))
+      case .typeCheck(let type):
+        return [
+          [node.newToken(.keyword, "is")],
+          tokenize(type, node: node),
+        ].joined(token: node.newToken(.space, " "))
+      case .typeCast(let type):
+        return [
+          [node.newToken(.keyword, "as")],
+          tokenize(type, node: node),
+        ].joined(token: node.newToken(.space, " "))
+      case .typeConditionalCast(let type):
+        return [
+          [
+            node.newToken(.keyword, "as"),
+            node.newToken(.symbol, "?"),
+          ],
+          tokenize(type, node: node),
+        ].joined(token: node.newToken(.space, " "))
+      case .typeForcedCast(let type):
+        return [
+          [
+            node.newToken(.keyword, "as"),
+            node.newToken(.symbol, "!"),
+          ],
+          tokenize(type, node: node),
+        ].joined(token: node.newToken(.space, " "))
+      }
+    }
+
+    open func tokenize(_ expression: SequenceExpression) -> [Token] {
+      return expression.elements
+        .map({ tokenize($0, node: expression) })
+        .joined(token: expression.newToken(.space, " "))
+    }
+
     open func tokenize(_ expression: SubscriptExpression) -> [Token] {
         return tokenize(expression.postfixExpression) +
                 expression.newToken(.startOfScope, "[") +
@@ -434,7 +485,7 @@ extension Tokenizer {
             [expression.newToken(.symbol, "?")],
             tokenize(expression.trueExpression),
             [expression.newToken(.symbol, ":")],
-            tokenize(expression.falseExpression)
+            tokenize(expression.falseExpression),
         ].joined(token: expression.newToken(.space, " "))
     }
 
@@ -501,7 +552,7 @@ extension Tokenizer {
         return  [
             exprTokens,
             operatorTokens,
-            typeTokens
+            typeTokens,
         ].joined(token: expression.newToken(.space, " "))
     }
 
@@ -516,9 +567,9 @@ extension Tokenizer {
             entry.newToken(.delimiter, ": ", node) +
             tokenize(entry.value)
     }
-    
+
     open func tokenize(_ arg: SubscriptArgument, node: ASTNode) -> [Token] {
-        return  arg.identifier.map { id in 
+        return  arg.identifier.map { id in
             return arg.newToken(.identifier, id, node) + arg.newToken(.delimiter, ": ", node)
         } + tokenize(arg.expression)
     }
