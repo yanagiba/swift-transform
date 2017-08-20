@@ -13,4 +13,3 @@ lint:
   disable-rules:
     - high_cyclomatic_complexity
     - high_ncss
-    - long_line
