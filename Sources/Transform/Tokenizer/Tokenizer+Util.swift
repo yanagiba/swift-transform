@@ -16,14 +16,4 @@
 
 import AST
 
-extension Tokenizer {
-    open func tokenize(_ origin: ThrowsKind, node: ASTNode) -> [Token] {
-        switch origin {
-        case .nothrowing: return []
-        case .throwing: return [origin.newToken(.keyword, "throws", node)]
-        case .rethrowing: return [origin.newToken(.keyword, "rethrows", node)]
-        }
-    }
-}
-
 extension ThrowsKind: ASTTokenizable {}

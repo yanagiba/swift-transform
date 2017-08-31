@@ -16,68 +16,6 @@
 
 import AST
 
-extension Tokenizer {
-
-    open func tokenize(_ parameter: GenericParameterClause.GenericParameter, node: ASTNode) -> [Token] {
-        switch parameter {
-        case let .identifier(t):
-            return [parameter.newToken(.identifier, t, node)]
-        case let .typeConformance(t, typeIdentifier):
-            return parameter.newToken(.identifier, t, node) +
-                parameter.newToken(.delimiter, ": ", node) +
-                tokenize(typeIdentifier, node: node)
-
-        case let .protocolConformance(t, protocolCompositionType):
-            return parameter.newToken(.identifier, t, node) +
-                parameter.newToken(.delimiter, ": ", node) +
-                tokenize(protocolCompositionType, node: node)
-        }
-    }
-
-    open func tokenize(_ clause: GenericParameterClause, node: ASTNode) -> [Token] {
-        return
-            clause.newToken(.startOfScope, "<", node) +
-            clause.parameterList.map { tokenize($0, node: node) }
-                .joined(token: clause.newToken(.delimiter, ", ", node)) +
-            clause.newToken(.endOfScope, ">", node)
-    }
-
-    open func tokenize(_ clause: GenericWhereClause.Requirement, node: ASTNode) -> [Token] {
-        switch clause {
-        case let .sameType(t, type):
-            return tokenize(t, node: node) +
-                clause.newToken(.symbol, " == ", node) +
-                tokenize(type, node: node)
-
-        case let .typeConformance(t, typeIdentifier):
-            return tokenize(t, node: node) +
-                clause.newToken(.symbol, ": ", node) +
-                tokenize(typeIdentifier, node: node)
-
-        case let .protocolConformance(t, protocolCompositionType):
-            return tokenize(t, node: node) +
-                clause.newToken(.symbol, ": ", node) +
-                tokenize(protocolCompositionType, node: node)
-        }
-    }
-
-    open func tokenize(_ clause: GenericWhereClause, node: ASTNode) -> [Token] {
-        return clause.newToken(.keyword, "where", node) +
-            clause.newToken(.space, " ", node) +
-            clause.requirementList.map { tokenize($0, node: node) }
-                .joined(token: clause.newToken(.delimiter, ", ", node))
-    }
-
-    open func tokenize(_ clause: GenericArgumentClause, node: ASTNode) -> [Token] {
-        return clause.newToken(.startOfScope, "<", node) +
-                clause.argumentList.map { tokenize($0, node: node) }
-                    .joined(token: clause.newToken(.delimiter, ", ", node)) +
-                clause.newToken(.endOfScope, ">", node)
-    }
-    
-}
-
-
 extension GenericParameterClause: ASTTokenizable {}
 extension GenericParameterClause.GenericParameter: ASTTokenizable {}
 extension GenericWhereClause: ASTTokenizable {}
