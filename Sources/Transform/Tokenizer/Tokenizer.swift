@@ -1181,7 +1181,8 @@ open class Tokenizer {
         case let .argument(postfixExpr, identifier, argumentNames):
             let argumentTokens = argumentNames.isEmpty ? nil : argumentNames.flatMap {
                 expression.newToken(.identifier, $0) + expression.newToken(.delimiter, ":")
-                }.prefix(with: expression.newToken(.startOfScope, "(")).suffix(with: expression.newToken(.endOfScope, ")"))
+                }.prefix(with: expression.newToken(.startOfScope, "("))
+                .suffix(with: expression.newToken(.endOfScope, ")"))
             return tokenize(postfixExpr) + expression.newToken(.delimiter, ".") +
                 expression.newToken(.identifier, identifier) +
             argumentTokens
@@ -1946,7 +1947,8 @@ open class Tokenizer {
             return
                 statement.newToken(.keyword, "case", node) +
                     statement.newToken(.space, " ", node) +
-                    itemList.map { tokenize($0, node: node) }.joined(token: statement.newToken(.delimiter, ", ", node)) +
+                    itemList.map { tokenize($0, node: node) }
+                        .joined(token: statement.newToken(.delimiter, ", ", node)) +
                     statement.newToken(.delimiter, ":", node) +
                     statement.newToken(.linebreak, "\n", node) +
                     indent(tokenize(stmts, node: node))
