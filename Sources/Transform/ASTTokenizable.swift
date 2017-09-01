@@ -30,7 +30,3 @@ extension ASTTokenizable {
         return Token(origin: self, node: node, kind: kind, value: value)
     }
 }
-
-
-// TODO: Remove and make it per element?
-extension ASTNode: ASTTokenizable {}
