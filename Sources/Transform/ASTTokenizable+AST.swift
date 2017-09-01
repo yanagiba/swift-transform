@@ -16,6 +16,18 @@
 
 import AST
 
+// MARK: - ASTNode
+
+extension ASTNode: ASTTokenizable {}
+
+// MARK: - Attribute
+
+extension Attribute: ASTTokenizable {}
+extension Attribute.ArgumentClause: ASTTokenizable {}
+extension Attribute.ArgumentClause.BalancedToken: ASTTokenizable {}
+
+// MARK: - Declaration
+
 extension ProtocolDeclaration.InitializerMember: ASTTokenizable {}
 extension GetterSetterBlock.GetterClause: ASTTokenizable {}
 extension GetterSetterBlock.SetterClause: ASTTokenizable {}
@@ -44,3 +56,51 @@ extension ProtocolDeclaration.PropertyMember: ASTTokenizable {}
 extension ProtocolDeclaration.SubscriptMember: ASTTokenizable {}
 extension ProtocolDeclaration.AssociativityTypeMember: ASTTokenizable {}
 extension VariableDeclaration.Body: ASTTokenizable {}
+
+// MARK: - Expression
+
+extension ClosureExpression.Signature: ASTTokenizable {}
+extension ClosureExpression.Signature.CaptureItem: ASTTokenizable {}
+extension ClosureExpression.Signature.CaptureItem.Specifier: ASTTokenizable {}
+extension ClosureExpression.Signature.ParameterClause: ASTTokenizable {}
+extension ClosureExpression.Signature.ParameterClause.Parameter: ASTTokenizable {}
+extension FunctionCallExpression.Argument: ASTTokenizable {}
+extension TupleExpression.Element: ASTTokenizable {}
+extension DictionaryEntry: ASTTokenizable {}
+extension SubscriptArgument: ASTTokenizable {}
+
+// MARK: -  Generic
+
+extension GenericParameterClause: ASTTokenizable {}
+extension GenericParameterClause.GenericParameter: ASTTokenizable {}
+extension GenericWhereClause: ASTTokenizable {}
+extension GenericWhereClause.Requirement: ASTTokenizable {}
+extension GenericArgumentClause: ASTTokenizable {}
+
+// MARK: - Pattern
+
+extension PatternBase: ASTTokenizable {}
+extension TuplePattern.Element: ASTTokenizable {}
+
+// MARK: -  statement
+
+extension DoStatement.CatchClause: ASTTokenizable {}
+extension IfStatement.ElseClause: ASTTokenizable {}
+extension SwitchStatement.Case: ASTTokenizable {}
+extension SwitchStatement.Case.Item: ASTTokenizable {}
+extension Condition: ASTTokenizable {}
+extension AvailabilityCondition: ASTTokenizable {}
+extension AvailabilityCondition.Argument: ASTTokenizable {}
+
+// MARK: - Type
+
+extension TypeBase: ASTTokenizable {}
+extension FunctionType.Argument: ASTTokenizable {}
+extension TupleType.Element: ASTTokenizable {}
+extension TypeAnnotation: ASTTokenizable {}
+extension TypeIdentifier.TypeName: ASTTokenizable {}
+extension TypeInheritanceClause: ASTTokenizable {}
+
+// MARK: - Throws
+
+extension ThrowsKind: ASTTokenizable {}
