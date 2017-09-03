@@ -23,8 +23,10 @@ import AST
 // extensions when the compiler allows it in future versions
 
 open class Tokenizer {
-    let options: [String: Any]?
-    let indentation = "  "
+    public let options: [String: Any]?
+    open var indentation: String {
+        return "  "
+    }
 
     public init(options: [String: Any]? = nil) {
         self.options = options
