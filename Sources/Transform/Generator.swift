@@ -273,7 +273,7 @@ open class Generator {
     return _tokenJoiner.join(tokens: tokens)
   }
 
-  // MARK: Statements
+  // MARK: Expressions
 
   open func generate(_ expression: Expression) -> String { /*
     swift-lint:suppress(high_cyclomatic_complexity, high_ncss) */
