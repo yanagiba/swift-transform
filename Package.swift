@@ -37,11 +37,11 @@ let package = Package(
   dependencies: [
     .package(
       url: "https://github.com/yanagiba/swift-ast",
-      .exact("0.4.1")
+      .revision("3e572e59de1f520201285a9b7c00f5b166c916ba")
     ),
     .package(
       url: "https://github.com/yanagiba/bocho",
-      .exact("0.1.0")
+      .exact("0.1.1")
     ),
   ],
   targets: [

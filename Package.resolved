@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/yanagiba/bocho",
         "state": {
           "branch": null,
-          "revision": "a02d4faf11539b121cc007210a0141478fa3d924",
-          "version": "0.1.0"
+          "revision": "411fb57fe99824ebe8f107c69cf61fc8bc68853d",
+          "version": "0.1.1"
         }
       },
       {
@@ -15,8 +15,8 @@
         "repositoryURL": "https://github.com/yanagiba/swift-ast",
         "state": {
           "branch": null,
-          "revision": "87888a78bc264a57536e6c628f4ad4ad02eadd06",
-          "version": "0.4.1"
+          "revision": "0545612f1224b4f2fa6df74a3bdb1864663f7ea7",
+          "version": null
         }
       }
     ]
