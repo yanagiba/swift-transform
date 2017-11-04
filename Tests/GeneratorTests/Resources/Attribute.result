@@ -1,11 +1,22 @@
+
 @a @b @c class Foo {}
+
 @a() struct Foo {}
+
 @a(foo) struct Foo {}
+
 @foo(()(xyz())) struct Foo {}
+
 @available(*, unavailable, renamed: "MyRenamedProtocol") struct Foo {}
+
 class Foo {}
+
 @foo([][xyz[]]) protocol Foo {}
+
 @foo({}{xyz{}}) protocol Foo {}
+
 @a(h()t) enum Foo {}
+
 @a(h[]t) enum Foo {}
+
 @a(h{}t) enum Foo {}
