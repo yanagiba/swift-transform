@@ -14,5 +14,7 @@ let foo: (Foo, Bar)
 let foo: (Foo, b: @a inout Bar)
 let foo: @a inout Foo
 let foo: package.Foo
+
 class Foo: class, Base {}
+
 class Bar: BaseClass, BaseProtocol {}

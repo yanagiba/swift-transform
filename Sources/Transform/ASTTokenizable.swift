@@ -20,13 +20,13 @@ import AST
 public protocol ASTTokenizable {}
 
 extension ASTTokenizable where Self : ASTNode {
-    func newToken(_ kind: Token.Kind, _ value: String) -> Token {
+    public func newToken(_ kind: Token.Kind, _ value: String) -> Token {
         return Token(origin: self, node: self, kind: kind, value: value)
     }
 }
 
 extension ASTTokenizable {
-    func newToken(_ kind: Token.Kind, _ value: String, _ node: ASTNode) -> Token {
+    public func newToken(_ kind: Token.Kind, _ value: String, _ node: ASTNode) -> Token {
         return Token(origin: self, node: node, kind: kind, value: value)
     }
 }

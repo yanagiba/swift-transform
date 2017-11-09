@@ -23,8 +23,10 @@ import AST
 // extensions when the compiler allows it in future versions
 
 open class Tokenizer {
-    let options: [String: Any]?
-    let indentation = "  "
+    public let options: [String: Any]?
+    open var indentation: String {
+        return "  "
+    }
 
     public init(options: [String: Any]? = nil) {
         self.options = options
@@ -272,7 +274,7 @@ open class Tokenizer {
             finalTokens,
             [declaration.newToken(.keyword, "class")],
             [declaration.newToken(.identifier, declaration.name)],
-            ].joined(token: declaration.newToken(.space, " "))
+        ].joined(token: declaration.newToken(.space, " "))
         
         let genericParameterClauseTokens = declaration.genericParameterClause.map {
             tokenize($0, node: declaration)
@@ -281,20 +283,20 @@ open class Tokenizer {
         let whereTokens = declaration.genericWhereClause.map {
             declaration.newToken(.space, " ") + tokenize($0, node: declaration)
             } ?? []
-        let neckTokens = genericParameterClauseTokens +
-            typeTokens +
-        whereTokens
-        
+        let neckTokens = genericParameterClauseTokens + typeTokens + whereTokens
+
         let membersTokens = indent(declaration.members.map(tokenize)
             .joined(token: declaration.newToken(.linebreak, "\n")))
             .prefix(with: declaration.newToken(.linebreak, "\n"))
             .suffix(with: declaration.newToken(.linebreak, "\n"))
-        
-        return headTokens +
+
+        let declTokens = headTokens +
             neckTokens +
             [declaration.newToken(.space, " "), declaration.newToken(.startOfScope, "{")] +
             membersTokens +
             [declaration.newToken(.endOfScope, "}")]
+
+        return declTokens.prefix(with: declaration.newToken(.linebreak, "\n"))
     }
     
     open func tokenize(_ constant: ConstantDeclaration) -> [Token] {
@@ -312,6 +314,7 @@ open class Tokenizer {
             [declaration.newToken(.keyword, "deinit")],
             tokenize(declaration.body)
             ].joined(token: declaration.newToken(.space, " "))
+        .prefix(with: declaration.newToken(.linebreak, "\n"))
     }
     
     open func tokenize(_ member: EnumDeclaration.Member, node: ASTNode) -> [Token] {
@@ -393,12 +396,14 @@ open class Tokenizer {
             .joined(token: declaration.newToken(.linebreak, "\n")))
             .prefix(with: declaration.newToken(.linebreak, "\n"))
             .suffix(with: declaration.newToken(.linebreak, "\n"))
-        
-        return headTokens +
+
+        let declTokens = headTokens +
             neckTokens +
             [declaration.newToken(.space, " "), declaration.newToken(.startOfScope, "{")] +
             membersTokens +
             [declaration.newToken(.endOfScope, "}")]
+
+        return declTokens.prefix(with: declaration.newToken(.linebreak, "\n"))
     }
     
     open func tokenize(_ member: ExtensionDeclaration.Member) -> [Token] {
@@ -430,12 +435,14 @@ open class Tokenizer {
             .joined(token: declaration.newToken(.linebreak, "\n")))
             .prefix(with: declaration.newToken(.linebreak, "\n"))
             .suffix(with: declaration.newToken(.linebreak, "\n"))
-        
-        return headTokens +
+
+        let declTokens = headTokens +
             neckTokens +
             [declaration.newToken(.space, " "), declaration.newToken(.startOfScope, "{")] +
             membersTokens +
             [declaration.newToken(.endOfScope, "}")]
+
+        return declTokens.prefix(with: declaration.newToken(.linebreak, "\n"))
     }
     
     open func tokenize(_ declaration: FunctionDeclaration) -> [Token] {
@@ -461,6 +468,7 @@ open class Tokenizer {
             whereTokens,
             bodyTokens
             ].joined(token: declaration.newToken(.space, " "))
+        .prefix(with: declaration.newToken(.linebreak, "\n"))
     }
     
     open func tokenize(_ parameter: FunctionSignature.Parameter, node: ASTNode) -> [Token] {
@@ -542,6 +550,7 @@ open class Tokenizer {
             genericWhereTokens,
             bodyTokens
             ].joined(token: declaration.newToken(.space, " "))
+        .prefix(with: declaration.newToken(.linebreak, "\n"))
     }
     
     open func tokenize(_ declaration: InitializerDeclaration.InitKind, node: ASTNode) -> [Token] {
@@ -669,12 +678,14 @@ open class Tokenizer {
             .joined(token: declaration.newToken(.linebreak, "\n")))
             .prefix(with: declaration.newToken(.linebreak, "\n"))
             .suffix(with: declaration.newToken(.linebreak, "\n"))
-        
-        return headTokens +
+
+        let declTokens = headTokens +
             typeTokens +
             [declaration.newToken(.space, " "), declaration.newToken(.startOfScope, "{")] +
             membersTokens +
             [declaration.newToken(.endOfScope, "}")]
+
+        return declTokens.prefix(with: declaration.newToken(.linebreak, "\n"))
     }
     
     open func tokenize(_ member: ProtocolDeclaration.Member, node: ASTNode) -> [Token] {
@@ -827,12 +838,14 @@ open class Tokenizer {
             .joined(token: declaration.newToken(.linebreak, "\n")))
             .prefix(with: declaration.newToken(.linebreak, "\n"))
             .suffix(with: declaration.newToken(.linebreak, "\n"))
-        
-        return headTokens +
+
+        let declTokens = headTokens +
             neckTokens +
             [declaration.newToken(.space, " "), declaration.newToken(.startOfScope, "{")] +
             membersTokens +
             [declaration.newToken(.endOfScope, "}")]
+
+        return declTokens.prefix(with: declaration.newToken(.linebreak, "\n"))
     }
     
     open func tokenize(_ member: StructDeclaration.Member) -> [Token] {
