@@ -309,12 +309,14 @@ open class Tokenizer {
     }
     
     open func tokenize(_ declaration: DeinitializerDeclaration) -> [Token] {
-        return [
+        let declTokens = [
             tokenize(declaration.attributes, node: declaration),
             [declaration.newToken(.keyword, "deinit")],
-            tokenize(declaration.body)
-            ].joined(token: declaration.newToken(.space, " "))
-        .prefix(with: declaration.newToken(.linebreak, "\n"))
+            tokenize(declaration.body),
+        ]
+        return declTokens
+            .joined(token: declaration.newToken(.space, " "))
+            .prefix(with: declaration.newToken(.linebreak, "\n"))
     }
     
     open func tokenize(_ member: EnumDeclaration.Member, node: ASTNode) -> [Token] {
