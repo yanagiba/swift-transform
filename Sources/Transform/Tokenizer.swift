@@ -1,5 +1,5 @@
 /*
-   Copyright 2017 Ryuichi Laboratories and the Yanagiba project contributors
+   Copyright 2017-2018 Ryuichi Laboratories and the Yanagiba project contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ open class Tokenizer {
     public init(options: [String: Any]? = nil) {
         self.options = options
     }
-    
+
     // MARK: - Utils
 
     open func indent(_ tokens: [Token]) -> [Token] {
@@ -40,31 +40,31 @@ open class Tokenizer {
             return result + token + (token.kind == .linebreak ? token.node?.newToken(.indentation, indentation) : nil)
         }
     }
-    
+
     // MARK: - Attributes
-    
+
     open func tokenize(_ attributes: Attributes, node: ASTNode) -> [Token] {
         return attributes.map { tokenize($0, node: node) }.joined(token: node.newToken(.space, " ", node))
     }
-    
+
     open func tokenize(_ attribute: Attribute, node: ASTNode) -> [Token] {
         return
             attribute.newToken(.symbol, "@", node) +
                 attribute.newToken(.identifier, attribute.name, node) +
                 attribute.argumentClause.map { tokenize($0, node: node) }
     }
-    
+
     open func tokenize(_ argument: Attribute.ArgumentClause, node: ASTNode) -> [Token] {
         return
             argument.newToken(.startOfScope, "(", node) +
                 tokenize(argument.balancedTokens, node: node) +
                 argument.newToken(.endOfScope, ")", node)
     }
-    
+
     open func tokenize(_ tokens: [Attribute.ArgumentClause.BalancedToken], node: ASTNode) -> [Token] {
         return tokens.map { tokenize($0, node: node) }.joined()
     }
-    
+
     open func tokenize(_ token: Attribute.ArgumentClause.BalancedToken, node: ASTNode) -> [Token] {
         switch token {
         case .token(let tokenString):
@@ -80,7 +80,7 @@ open class Tokenizer {
                 tokenize(tokens, node: node) + token.newToken(.endOfScope, "}", node)
         }
     }
-    
+
     // MARK: - Declarations
     open func tokenize(_ declaration: Declaration) -> [Token] { // swift-lint:suppress(high_cyclomatic_complexity)
         switch declaration {
@@ -121,13 +121,13 @@ open class Tokenizer {
                           value: declaration.textDescription)]
         }
     }
-    
+
     open func tokenize(_ topLevelDeclaration: TopLevelDeclaration) -> [Token] {
         return topLevelDeclaration.statements.map(tokenize)
             .joined(token: topLevelDeclaration.newToken(.linebreak, "\n")) +
             topLevelDeclaration.newToken(.linebreak, "\n")
     }
-    
+
     open func tokenize(_ codeBlock: CodeBlock) -> [Token] {
         if codeBlock.statements.isEmpty {
             return [codeBlock.newToken(.startOfScope, "{"), codeBlock.newToken(.endOfScope, "}")]
@@ -139,7 +139,7 @@ open class Tokenizer {
             [codeBlock.newToken(.endOfScope, "}")]
             ].joined(token: lineBreakToken)
     }
-    
+
     open func tokenize(_ block: GetterSetterBlock.GetterClause, node: ASTNode) -> [Token] {
         return [
             tokenize(block.attributes, node: node),
@@ -148,7 +148,7 @@ open class Tokenizer {
             tokenize(block.codeBlock)
             ].joined(token: block.newToken(.space, " ", node))
     }
-    
+
     open func tokenize(_ block: GetterSetterBlock.SetterClause, node: ASTNode) -> [Token] {
         let mutationTokens = block.mutationModifier.map { tokenize($0, node: node) } ?? []
         let setTokens = block.newToken(.keyword, "set", node) +
@@ -157,7 +157,7 @@ open class Tokenizer {
                     block.newToken(.identifier, name, node) +
                     block.newToken(.endOfScope, ")", node)
         }
-        
+
         return [
             tokenize(block.attributes, node: node),
             mutationTokens,
@@ -165,7 +165,7 @@ open class Tokenizer {
             tokenize(block.codeBlock)
             ].joined(token: block.newToken(.space, " ", node))
     }
-    
+
     open func tokenize(_ block: GetterSetterBlock, node: ASTNode) -> [Token] {
         let getterTokens = tokenize(block.getter, node: node)
         let setterTokens = block.setter.map { tokenize($0, node: node) } ?? []
@@ -176,7 +176,7 @@ open class Tokenizer {
             [block.newToken(.endOfScope, "}", node)]
             ].joined(token: block.newToken(.linebreak, "\n", node))
     }
-    
+
     open func tokenize(_ block: GetterSetterKeywordBlock, node: ASTNode) -> [Token] {
         let getterTokens = tokenize(block.getter, node: node)
         let setterTokens = block.setter.map { tokenize($0, node: node) } ?? []
@@ -187,7 +187,7 @@ open class Tokenizer {
             [block.newToken(.endOfScope, "}", node)]
             ].joined(token: block.newToken(.linebreak, "\n", node))
     }
-    
+
     open func tokenize(_ block: WillSetDidSetBlock.WillSetClause, node: ASTNode) -> [Token] {
         let nameTokens = block.name.map { name in
             return block.newToken(.startOfScope, "(", node) +
@@ -200,7 +200,7 @@ open class Tokenizer {
             tokenize(block.codeBlock)
             ].joined(token: block.newToken(.space, " ", node))
     }
-    
+
     open func tokenize(_ block: WillSetDidSetBlock.DidSetClause, node: ASTNode) -> [Token] {
         let nameTokens = block.name.map { name in
             return block.newToken(.startOfScope, "(", node) +
@@ -213,7 +213,7 @@ open class Tokenizer {
             tokenize(block.codeBlock)
             ].joined(token: block.newToken(.space, " ", node))
     }
-    
+
     open func tokenize(_ block: WillSetDidSetBlock, node: ASTNode) -> [Token] {
         let willSetClause = block.willSetClause.map { tokenize($0, node: node) } ?? []
         let didSetClause = block.didSetClause.map { tokenize($0, node: node) } ?? []
@@ -224,7 +224,7 @@ open class Tokenizer {
             [block.newToken(.endOfScope, "}", node)]
             ].joined(token: block.newToken(.linebreak, "\n", node))
     }
-    
+
     open func tokenize(_ clause: GetterSetterKeywordBlock.GetterKeywordClause, node: ASTNode) -> [Token] {
         return [
             tokenize(clause.attributes, node: node),
@@ -232,7 +232,7 @@ open class Tokenizer {
             [clause.newToken(.keyword, "get", node)],
             ].joined(token: clause.newToken(.space, " ", node))
     }
-    
+
     open func tokenize(_ clause: GetterSetterKeywordBlock.SetterKeywordClause, node: ASTNode) -> [Token] {
         return [
             tokenize(clause.attributes, node: node),
@@ -240,7 +240,7 @@ open class Tokenizer {
             [clause.newToken(.keyword, "set", node)],
             ].joined(token: clause.newToken(.space, " ", node))
     }
-    
+
     open func tokenize(_ patternInitializer: PatternInitializer, node: ASTNode) -> [Token] {
         let pttrnTokens = tokenize(patternInitializer.pattern, node: node)
         guard let initExpr = patternInitializer.initializerExpression else {
@@ -250,11 +250,11 @@ open class Tokenizer {
             [patternInitializer.newToken(.symbol, " = ", node)] +
             tokenize(expression: initExpr)
     }
-    
+
     open func tokenize(_ initializers: [PatternInitializer], node: ASTNode) -> [Token] {
         return initializers.map { tokenize($0, node: node) }.joined(token: node.newToken(.delimiter, ", "))
     }
-    
+
     open func tokenize(_ member: ClassDeclaration.Member) -> [Token] {
         switch member {
         case .declaration(let decl):
@@ -263,7 +263,7 @@ open class Tokenizer {
             return tokenize(stmt)
         }
     }
-    
+
     open func tokenize(_ declaration: ClassDeclaration) -> [Token] {
         let attrsTokens = tokenize(declaration.attributes, node: declaration)
         let modifierTokens = declaration.accessLevelModifier.map { tokenize($0, node: declaration) } ?? []
@@ -275,7 +275,7 @@ open class Tokenizer {
             [declaration.newToken(.keyword, "class")],
             [declaration.newToken(.identifier, declaration.name)],
         ].joined(token: declaration.newToken(.space, " "))
-        
+
         let genericParameterClauseTokens = declaration.genericParameterClause.map {
             tokenize($0, node: declaration)
             } ?? []
@@ -298,7 +298,7 @@ open class Tokenizer {
 
         return declTokens.prefix(with: declaration.newToken(.linebreak, "\n"))
     }
-    
+
     open func tokenize(_ constant: ConstantDeclaration) -> [Token] {
         return [
             tokenize(constant.attributes, node: constant),
@@ -307,7 +307,7 @@ open class Tokenizer {
             tokenize(constant.initializerList, node: constant)
             ].joined(token: constant.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ declaration: DeinitializerDeclaration) -> [Token] {
         let declTokens = [
             tokenize(declaration.attributes, node: declaration),
@@ -318,7 +318,7 @@ open class Tokenizer {
             .joined(token: declaration.newToken(.space, " "))
             .prefix(with: declaration.newToken(.linebreak, "\n"))
     }
-    
+
     open func tokenize(_ member: EnumDeclaration.Member, node: ASTNode) -> [Token] {
         switch member {
         case .declaration(let decl):
@@ -331,12 +331,12 @@ open class Tokenizer {
             return tokenize(stmt)
         }
     }
-    
+
     open func tokenize(_ union: EnumDeclaration.UnionStyleEnumCase, node: ASTNode) -> [Token] {
         let casesTokens = union.cases.map { c in
             return c.newToken(.identifier, c.name, node) + c.tuple.map { tokenize($0, node: node) }
             }.joined(token: union.newToken(.delimiter, ", ", node))
-        
+
         return [
             tokenize(union.attributes, node: node),
             union.isIndirect ? [union.newToken(.keyword, "indirect", node)] : [],
@@ -344,7 +344,7 @@ open class Tokenizer {
             casesTokens
             ].joined(token: union.newToken(.space, " ", node))
     }
-    
+
     open func tokenize(_ raw: EnumDeclaration.RawValueStyleEnumCase, node: ASTNode) -> [Token] {
         let casesTokens = raw.cases.map { c -> [Token] in
             var assignmentTokens = [Token]()
@@ -363,14 +363,14 @@ open class Tokenizer {
             }
             return c.newToken(.identifier, c.name, node) + assignmentTokens
             }.joined(token: raw.newToken(.delimiter, ", ", node))
-        
+
         return [
             tokenize(raw.attributes, node: node),
             [raw.newToken(.keyword, "case", node)],
             casesTokens
             ].joined(token: raw.newToken(.space, " ", node))
     }
-    
+
     open func tokenize(_ declaration: EnumDeclaration) -> [Token] {
         let attrsTokens = tokenize(declaration.attributes, node: declaration)
         let modifierTokens = declaration.accessLevelModifier.map { tokenize($0, node: declaration) } ?? []
@@ -382,7 +382,7 @@ open class Tokenizer {
             [declaration.newToken(.keyword, "enum")],
             [declaration.newToken(.identifier, declaration.name)],
             ].joined(token: declaration.newToken(.space, " "))
-        
+
         let genericParameterClauseTokens = declaration.genericParameterClause.map {
             tokenize($0, node: declaration)
             } ?? []
@@ -393,7 +393,7 @@ open class Tokenizer {
         let neckTokens = genericParameterClauseTokens +
             typeTokens +
         whereTokens
-        
+
         let membersTokens = indent(declaration.members.map { tokenize($0, node: declaration) }
             .joined(token: declaration.newToken(.linebreak, "\n")))
             .prefix(with: declaration.newToken(.linebreak, "\n"))
@@ -407,7 +407,7 @@ open class Tokenizer {
 
         return declTokens.prefix(with: declaration.newToken(.linebreak, "\n"))
     }
-    
+
     open func tokenize(_ member: ExtensionDeclaration.Member) -> [Token] {
         switch member {
         case .declaration(let decl):
@@ -416,7 +416,7 @@ open class Tokenizer {
             return tokenize(stmt)
         }
     }
-    
+
     open func tokenize(_ declaration: ExtensionDeclaration) -> [Token] {
         let attrsTokens = tokenize(declaration.attributes, node: declaration)
         let modifierTokens = declaration.accessLevelModifier.map { tokenize($0, node: declaration) } ?? []
@@ -426,13 +426,13 @@ open class Tokenizer {
             [declaration.newToken(.keyword, "extension")],
             tokenize(declaration.type, node: declaration)
             ].joined(token: declaration.newToken(.space, " "))
-        
+
         let typeTokens = declaration.typeInheritanceClause.map { tokenize($0, node: declaration) } ?? []
         let whereTokens = declaration.genericWhereClause.map {
             declaration.newToken(.space, " ") + tokenize($0, node: declaration)
             } ?? []
         let neckTokens = typeTokens + whereTokens
-        
+
         let membersTokens = indent(declaration.members.map(tokenize)
             .joined(token: declaration.newToken(.linebreak, "\n")))
             .prefix(with: declaration.newToken(.linebreak, "\n"))
@@ -446,7 +446,7 @@ open class Tokenizer {
 
         return declTokens.prefix(with: declaration.newToken(.linebreak, "\n"))
     }
-    
+
     open func tokenize(_ declaration: FunctionDeclaration) -> [Token] {
         let attrsTokens = tokenize(declaration.attributes, node: declaration)
         let modifierTokens = declaration.modifiers.map { tokenize($0, node: declaration) }
@@ -456,14 +456,14 @@ open class Tokenizer {
             modifierTokens,
             [declaration.newToken(.keyword, "func")],
             ].joined(token: declaration.newToken(.space, " "))
-        
+
         let genericParameterClauseTokens = declaration.genericParameterClause.map {
             tokenize($0, node: declaration)
             } ?? []
         let signatureTokens = tokenize(declaration.signature, node: declaration)
         let whereTokens = declaration.genericWhereClause.map { tokenize($0, node: declaration) } ?? []
         let bodyTokens = declaration.body.map(tokenize) ?? []
-        
+
         return [
             headTokens,
             [declaration.newToken(.identifier, declaration.name)] + genericParameterClauseTokens + signatureTokens,
@@ -472,11 +472,11 @@ open class Tokenizer {
             ].joined(token: declaration.newToken(.space, " "))
         .prefix(with: declaration.newToken(.linebreak, "\n"))
     }
-    
+
     open func tokenize(_ parameter: FunctionSignature.Parameter, node: ASTNode) -> [Token] {
         let externalNameTokens = parameter.externalName.map { [parameter.newToken(.identifier, $0, node)] } ?? []
-        let localNameTokens = parameter.localName.isEmpty ? [] : [
-            parameter.newToken(.identifier, parameter.localName, node)
+        let localNameTokens = parameter.localName.textDescription.isEmpty ? [] : [
+            parameter.newToken(.identifier, parameter.localName.textDescription, node)
         ]
         let nameTokens = [externalNameTokens, localNameTokens].joined(token: parameter.newToken(.space, " ", node))
         let typeAnnoTokens = tokenize(parameter.typeAnnotation, node: node)
@@ -484,14 +484,14 @@ open class Tokenizer {
             return parameter.newToken(.symbol, " = ", node) + tokenize($0)
         }
         let varargsTokens = parameter.isVarargs ? [parameter.newToken(.symbol, "...", node)] : []
-        
+
         return
             nameTokens +
                 typeAnnoTokens +
                 defaultTokens +
         varargsTokens
     }
-    
+
     open func tokenize(_ signature: FunctionSignature, node: ASTNode) -> [Token] {
         let parameterTokens = signature.newToken(.startOfScope, "(", node) +
             signature.parameterList.map { tokenize($0, node: node) }
@@ -502,23 +502,23 @@ open class Tokenizer {
         return [parameterTokens, throwsKindTokens, resultTokens]
             .joined(token: signature.newToken(.space, " ", node))
     }
-    
+
     open func tokenize(_ result: FunctionResult, node: ASTNode) -> [Token] {
         let typeTokens = tokenize(result.type, node: node)
         let attributeTokens = tokenize(result.attributes, node: node)
-        
+
         return [
             [result.newToken(.symbol, "->", node)],
             attributeTokens,
             typeTokens
             ].joined(token: result.newToken(.space, " ", node))
     }
-    
+
     open func tokenize(_ declaration: ImportDeclaration) -> [Token] {
         let attrsTokens = tokenize(declaration.attributes, node: declaration)
         let kindTokens = declaration.kind.map { [declaration.newToken(.identifier, $0.rawValue)] } ?? []
         let pathTokens = declaration.path.isEmpty ? [] : [
-            declaration.newToken(.identifier, declaration.path.joined(separator: "."))
+            declaration.newToken(.identifier, declaration.path.map({ $0.textDescription }).joined(separator: "."))
         ]
         return [
             attrsTokens,
@@ -527,7 +527,7 @@ open class Tokenizer {
             pathTokens
             ].joined(token: declaration.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ declaration: InitializerDeclaration) -> [Token] {
         let attrsTokens = tokenize(declaration.attributes, node: declaration)
         let modifierTokens = tokenize(declaration.modifiers, node: declaration)
@@ -536,7 +536,7 @@ open class Tokenizer {
             modifierTokens,
             [declaration.newToken(.keyword, "init")] + tokenize(declaration.kind, node: declaration)
             ].joined(token: declaration.newToken(.space, " "))
-        
+
         let genericParamTokens = declaration.genericParameterClause.map { tokenize($0, node: declaration) } ?? []
         let parameterTokens = declaration.newToken(.startOfScope, "(") +
             declaration.parameterList.map { tokenize($0, node: declaration) }
@@ -545,7 +545,7 @@ open class Tokenizer {
         let throwsKindTokens = tokenize(declaration.throwsKind, node: declaration)
         let genericWhereTokens = declaration.genericWhereClause.map { tokenize($0, node: declaration) } ?? []
         let bodyTokens = tokenize(declaration.body)
-        
+
         return [
             headTokens + genericParamTokens + parameterTokens,
             throwsKindTokens,
@@ -554,7 +554,7 @@ open class Tokenizer {
             ].joined(token: declaration.newToken(.space, " "))
         .prefix(with: declaration.newToken(.linebreak, "\n"))
     }
-    
+
     open func tokenize(_ declaration: InitializerDeclaration.InitKind, node: ASTNode) -> [Token] {
         switch declaration {
         case .nonfailable:
@@ -565,7 +565,7 @@ open class Tokenizer {
             return [declaration.newToken(.symbol, "!", node)]
         }
     }
-    
+
     open func tokenize(_ declaration: OperatorDeclaration) -> [Token] {
         switch declaration.kind {
         case .prefix(let op):
@@ -596,11 +596,11 @@ open class Tokenizer {
                 ].joined(token: declaration.newToken(.space, " "))
         }
     }
-    
+
     open func tokenize(_ declaration: PrecedenceGroupDeclaration) -> [Token] {
         let attrsTokens = declaration.attributes.map { tokenize($0, node: declaration) }
             .joined(token: declaration.newToken(.linebreak, "\n"))
-        
+
         let attrsBlockTokens: [Token]
         if declaration.attributes.isEmpty {
             attrsBlockTokens = [declaration.newToken(.startOfScope, "{"), declaration.newToken(.endOfScope, "}")]
@@ -617,7 +617,7 @@ open class Tokenizer {
             attrsBlockTokens
             ].joined(token: declaration.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ attribute: PrecedenceGroupDeclaration.Attribute, node: ASTNode) -> [Token] {
         switch attribute {
         case .higherThan(let ids):
@@ -664,7 +664,7 @@ open class Tokenizer {
             ]
         }
     }
-    
+
     open func tokenize(_ declaration: ProtocolDeclaration) -> [Token] {
         let attrsTokens = tokenize(declaration.attributes, node: declaration)
         let modifierTokens = declaration.accessLevelModifier.map { tokenize($0, node: declaration) } ?? []
@@ -674,7 +674,7 @@ open class Tokenizer {
             [declaration.newToken(.keyword, "protocol")],
             [declaration.newToken(.identifier, declaration.name)],
             ].joined(token: declaration.newToken(.space, " "))
-        
+
         let typeTokens = declaration.typeInheritanceClause.map { tokenize($0, node: declaration) } ?? []
         let membersTokens = indent(declaration.members.map { tokenize($0, node: declaration) }
             .joined(token: declaration.newToken(.linebreak, "\n")))
@@ -689,7 +689,7 @@ open class Tokenizer {
 
         return declTokens.prefix(with: declaration.newToken(.linebreak, "\n"))
     }
-    
+
     open func tokenize(_ member: ProtocolDeclaration.Member, node: ASTNode) -> [Token] {
         switch member {
         case .property(let member):
@@ -706,12 +706,12 @@ open class Tokenizer {
             return tokenize(stmt)
         }
     }
-    
+
     open func tokenize(_ member: ProtocolDeclaration.PropertyMember, node: ASTNode) -> [Token] {
         let attrsTokens = tokenize(member.attributes, node: node)
         let modifiersTokens = tokenize(member.modifiers, node: node)
         let blockTokens = tokenize(member.getterSetterKeywordBlock, node: node)
-        
+
         return [
             attrsTokens,
             modifiersTokens,
@@ -720,7 +720,7 @@ open class Tokenizer {
             blockTokens
             ].joined(token: member.newToken(.space, " ", node))
     }
-    
+
     open func tokenize(_ member: ProtocolDeclaration.MethodMember, node: ASTNode) -> [Token] {
         let attrsTokens = tokenize(member.attributes, node: node)
         let modifierTokens = member.modifiers.map { tokenize($0, node: node) }
@@ -730,7 +730,7 @@ open class Tokenizer {
             modifierTokens,
             [member.newToken(.keyword, "func", node)],
             ].joined(token: member.newToken(.space, " ", node))
-        
+
         let genericParameterClauseTokens = member.genericParameter.map { tokenize($0, node: node) } ?? []
         let signatureTokens = tokenize(member.signature, node: node)
         let genericWhereClauseTokens = member.genericWhere.map { (tokenize($0, node: node)) } ?? []
@@ -740,7 +740,7 @@ open class Tokenizer {
             genericWhereClauseTokens
             ].joined(token: member.newToken(.space, " ", node))
     }
-    
+
     open func tokenize(_ member: ProtocolDeclaration.InitializerMember, node: ASTNode) -> [Token] {
         let attrsTokens = tokenize(member.attributes, node: node)
         let modifierTokens = tokenize(member.modifiers, node: node)
@@ -749,23 +749,23 @@ open class Tokenizer {
             modifierTokens,
             member.newToken(.keyword, "init", node) + tokenize(member.kind, node: node),
             ].joined(token: member.newToken(.space, " ", node))
-        
+
         let genericParameterClauseTokens = member.genericParameter.map { tokenize($0, node: node) } ?? []
         let parameterTokens = member.newToken(.startOfScope, "(", node) +
             member.parameterList.map { tokenize($0, node: node) }
                 .joined(token: member.newToken(.delimiter, ", ", node)) +
             member.newToken(.endOfScope, ")", node)
-        
+
         let throwsKindTokens = tokenize(member.throwsKind, node: node)
         let genericWhereClauseTokens = member.genericWhere.map { tokenize($0, node: node) } ?? []
-        
+
         return [
             headTokens + genericParameterClauseTokens + parameterTokens,
             throwsKindTokens,
             genericWhereClauseTokens
             ].joined(token: member.newToken(.space, " ", node))
     }
-    
+
     open func tokenize(_ member: ProtocolDeclaration.SubscriptMember, node: ASTNode) -> [Token] {
         let attrsTokens = tokenize(member.attributes, node: node)
         let modifierTokens = tokenize(member.modifiers, node: node)
@@ -779,7 +779,7 @@ open class Tokenizer {
             modifierTokens,
             [member.newToken(.keyword, "subscript", node)] + genericParameterClauseTokens + parameterTokens
             ].joined(token: member.newToken(.space, " ", node))
-        
+
         let resultAttrsTokens = tokenize(member.resultAttributes, node: node)
         let resultTokens = [
             [member.newToken(.symbol, "->", node)],
@@ -787,7 +787,7 @@ open class Tokenizer {
             tokenize(member.resultType, node: node)
             ].joined(token: member.newToken(.space, " ", node))
         let genericWhereClauseTokens = member.genericWhere.map { tokenize($0, node: node) } ?? []
-        
+
         return [
             headTokens,
             resultTokens,
@@ -795,7 +795,7 @@ open class Tokenizer {
             tokenize(member.getterSetterKeywordBlock, node: node)
             ].joined(token: member.newToken(.space, " ", node))
     }
-    
+
     open func tokenize(_ member: ProtocolDeclaration.AssociativityTypeMember, node: ASTNode) -> [Token] {
         let attrsTokens = tokenize(member.attributes, node: node)
         let modifierTokens = member.accessLevelModifier.map { tokenize($0, node: node) } ?? []
@@ -804,7 +804,7 @@ open class Tokenizer {
             member.newToken(.symbol, "=", node) + member.newToken(.space, " ", node) + tokenize($0, node: node)
             } ?? []
         let genericWhereTokens = member.genericWhere.map { tokenize($0, node: node) } ?? []
-        
+
         return [
             attrsTokens,
             modifierTokens,
@@ -814,7 +814,7 @@ open class Tokenizer {
             genericWhereTokens
             ].joined(token: member.newToken(.space, " ", node))
     }
-    
+
     open func tokenize(_ declaration: StructDeclaration) -> [Token] {
         let attrsTokens = tokenize(declaration.attributes, node: declaration)
         let modifierTokens = declaration.accessLevelModifier.map { tokenize($0, node: declaration) } ?? []
@@ -824,7 +824,7 @@ open class Tokenizer {
             [declaration.newToken(.keyword, "struct")],
             [declaration.newToken(.identifier, declaration.name)],
             ].joined(token: declaration.newToken(.space, " "))
-        
+
         let genericParameterClauseTokens = declaration.genericParameterClause.map {
             tokenize($0, node: declaration)
             } ?? []
@@ -835,7 +835,7 @@ open class Tokenizer {
         let neckTokens = genericParameterClauseTokens +
             typeTokens +
         whereTokens
-        
+
         let membersTokens = indent(declaration.members.map(tokenize)
             .joined(token: declaration.newToken(.linebreak, "\n")))
             .prefix(with: declaration.newToken(.linebreak, "\n"))
@@ -849,7 +849,7 @@ open class Tokenizer {
 
         return declTokens.prefix(with: declaration.newToken(.linebreak, "\n"))
     }
-    
+
     open func tokenize(_ member: StructDeclaration.Member) -> [Token] {
         switch member {
         case .declaration(let decl):
@@ -858,7 +858,7 @@ open class Tokenizer {
             return tokenize(stmt)
         }
     }
-    
+
     open func tokenize(_ declaration: SubscriptDeclaration) -> [Token] {
         let attrsTokens = tokenize(declaration.attributes, node: declaration)
         let modifierTokens = tokenize(declaration.modifiers, node: declaration)
@@ -869,22 +869,22 @@ open class Tokenizer {
             declaration.parameterList.map { tokenize($0, node: declaration) }
                 .joined(token: declaration.newToken(.delimiter, ", ")) +
             declaration.newToken(.endOfScope, ")")
-        
+
         let headTokens = [
             attrsTokens,
             modifierTokens,
             [declaration.newToken(.keyword, "subscript")] + genericParameterClauseTokens + parameterTokens
             ].joined(token: declaration.newToken(.space, " "))
-        
+
         let resultAttrsTokens = tokenize(declaration.resultAttributes, node: declaration)
         let resultTokens = [
             [declaration.newToken(.symbol, "->")],
             resultAttrsTokens,
             tokenize(declaration.resultType, node: declaration)
             ].joined(token: declaration.newToken(.space, " "))
-        
+
         let genericWhereClauseTokens = declaration.genericWhereClause.map { tokenize($0, node: declaration) } ?? []
-        
+
         return [
             headTokens,
             resultTokens,
@@ -892,7 +892,7 @@ open class Tokenizer {
             tokenize(declaration.body, node: declaration)
             ].joined(token: declaration.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ body: SubscriptDeclaration.Body, node: ASTNode) -> [Token] {
         switch body {
         case .codeBlock(let block):
@@ -903,13 +903,13 @@ open class Tokenizer {
             return tokenize(block, node: node)
         }
     }
-    
+
     open func tokenize(_ declaration: TypealiasDeclaration) -> [Token] {
         let attrsTokens = tokenize(declaration.attributes, node: declaration)
         let modifierTokens = declaration.accessLevelModifier.map { tokenize($0, node: declaration) } ?? []
         let genericTokens = declaration.generic.map { tokenize($0, node: declaration) } ?? []
         let assignmentTokens = tokenize(declaration.assignment, node: declaration)
-        
+
         return [
             attrsTokens,
             modifierTokens,
@@ -919,11 +919,11 @@ open class Tokenizer {
             assignmentTokens
             ].joined(token: declaration.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ declaration: VariableDeclaration) -> [Token] {
         let attrsTokens = tokenize(declaration.attributes, node: declaration)
         let modifierTokens = tokenize(declaration.modifiers, node: declaration)
-        
+
         return [
             attrsTokens,
             modifierTokens,
@@ -931,7 +931,7 @@ open class Tokenizer {
             tokenize(declaration.body, node: declaration)
             ].joined(token: declaration.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ body: VariableDeclaration.Body, node: ASTNode) -> [Token] {
         switch body {
         case .initializerList(let inits):
@@ -961,12 +961,12 @@ open class Tokenizer {
                 tokenize(block, node: node)
         }
     }
-    
+
     open func tokenize(_ modifiers: [DeclarationModifier], node: ASTNode) -> [Token] {
         return modifiers.map { tokenize($0, node: node) }
             .joined(token: node.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ modifier: DeclarationModifier, node: ASTNode) -> [Token] { /*
          swift-lint:suppress(high_cyclomatic_complexity) */
         switch modifier {
@@ -1008,21 +1008,21 @@ open class Tokenizer {
             return tokenize(modifier, node: node)
         }
     }
-    
+
     open func tokenize(_ modifier: AccessLevelModifier, node: ASTNode) -> [Token] {
         return [modifier.newToken(.keyword, modifier.rawValue, node)]
     }
-    
+
     open func tokenize(_ modifier: MutationModifier, node: ASTNode) -> [Token] {
         return [modifier.newToken(.keyword, modifier.rawValue, node)]
     }
-    
+
     // MARK: - Expressions
 
     open func tokenize(expression: Expression) -> [Token] {
         return tokenize(expression)
     }
-    
+
     open func tokenize(_ expression: Expression) -> [Token] { /*
          swift-lint:suppress(high_cyclomatic_complexity, high_ncss) */
         switch expression {
@@ -1087,13 +1087,13 @@ open class Tokenizer {
                           value: expression.textDescription)]
         }
     }
-    
+
     open func tokenize(_ expression: AssignmentOperatorExpression) -> [Token] {
         return tokenize(expression.leftExpression) +
             expression.newToken(.symbol, " = ") +
             tokenize(expression.rightExpression)
     }
-    
+
     open func tokenize(_ expression: BinaryOperatorExpression) -> [Token] {
         return [
             tokenize(expression.leftExpression),
@@ -1101,12 +1101,12 @@ open class Tokenizer {
             tokenize(expression.rightExpression),
             ].joined(token: expression.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ expression: ClosureExpression) -> [Token] {
         let spaceToken = expression.newToken(.space, " ")
         var signatureTokens = [Token]()
         var stmtsTokens = [Token]()
-        
+
         if let signature = expression.signature {
             signatureTokens = spaceToken +
                 tokenize(signature, node: expression) +
@@ -1116,7 +1116,7 @@ open class Tokenizer {
                 stmtsTokens = [spaceToken]
             }
         }
-        
+
         if let stmts = expression.statements {
             if expression.signature == nil && stmts.count == 1 {
                 stmtsTokens = spaceToken + tokenize(stmts, node: expression) + spaceToken
@@ -1126,24 +1126,24 @@ open class Tokenizer {
                 stmtsTokens += [expression.newToken(.linebreak, "\n")]
             }
         }
-        
+
         return [expression.newToken(.startOfScope, "{")] +
             signatureTokens +
             stmtsTokens +
             [expression.newToken(.endOfScope, "}")]
     }
-    
+
     open func tokenize(_ expression: ClosureExpression.Signature.CaptureItem, node: ASTNode) -> [Token] {
         return [
             expression.specifier.map { tokenize($0, node: node) } ?? [],
             tokenize(expression.expression),
             ].joined(token: expression.newToken(.space, " ", node))
     }
-    
+
     open func tokenize(_ expression: ClosureExpression.Signature.CaptureItem.Specifier, node: ASTNode) -> [Token] {
         return [expression.newToken(.identifier, expression.rawValue, node)]
     }
-    
+
     open func tokenize(_ expression: ClosureExpression.Signature.ParameterClause, node: ASTNode) -> [Token] {
         switch expression {
         case .parameterList(let params):
@@ -1154,7 +1154,7 @@ open class Tokenizer {
             return [expression.newToken(.identifier, idList.textDescription, node)]
         }
     }
-    
+
     open func tokenize(_ expression: ClosureExpression.Signature.ParameterClause.Parameter, node: ASTNode) -> [Token] {
         return expression.newToken(.identifier, expression.name, node) +
             expression.typeAnnotation.map { typeAnnotation in
@@ -1162,7 +1162,7 @@ open class Tokenizer {
                     (expression.isVarargs ? typeAnnotation.newToken(.symbol, "...", node) : nil)
         }
     }
-    
+
     open func tokenize(_ expression: ClosureExpression.Signature, node: ASTNode) -> [Token] {
         let captureTokens = expression.captureList.map { captureList in
             return expression.newToken(.startOfScope, "[", node) +
@@ -1180,7 +1180,7 @@ open class Tokenizer {
             resultTokens,
             ].joined(token: expression.newToken(.space, " ", node))
     }
-    
+
     open func tokenize(_ expression: ExplicitMemberExpression) -> [Token] {
         switch expression.kind {
         case let .tuple(postfixExpr, index):
@@ -1203,11 +1203,11 @@ open class Tokenizer {
             argumentTokens
         }
     }
-    
+
     open func tokenize(_ expression: ForcedValueExpression) -> [Token] {
         return tokenize(expression.postfixExpression) + expression.newToken(.symbol, "!")
     }
-    
+
     open func tokenize(_ expression: FunctionCallExpression) -> [Token] {
         var parameterTokens = [Token]()
         if let argumentClause = expression.argumentClause {
@@ -1224,7 +1224,7 @@ open class Tokenizer {
         }
         return tokenize(expression.postfixExpression) + parameterTokens + trailingTokens
     }
-    
+
     open func tokenize(_ expression: FunctionCallExpression.Argument, node: ASTNode) -> [Token] {
         switch expression {
         case .expression(let expr):
@@ -1248,7 +1248,7 @@ open class Tokenizer {
                 expression.newToken(.symbol, op, node)
         }
     }
-    
+
     open func tokenize(_ expression: IdentifierExpression) -> [Token] {
         switch expression.kind {
         case let .identifier(id, generic):
@@ -1259,15 +1259,15 @@ open class Tokenizer {
                 generic.map { tokenize($0, node: expression) }
         }
     }
-    
+
     open func tokenize(_ expression: ImplicitMemberExpression) -> [Token] {
         return expression.newToken(.symbol, ".") + expression.newToken(.identifier, expression.identifier)
     }
-    
+
     open func tokenize(_ expression: InOutExpression) -> [Token] {
         return expression.newToken(.symbol, "&") + expression.newToken(.identifier, expression.identifier)
     }
-    
+
     open func tokenize(_ expression: InitializerExpression) -> [Token] {
         var tokens = tokenize(expression.postfixExpression) +
             expression.newToken(.identifier, ".init")
@@ -1283,14 +1283,14 @@ open class Tokenizer {
         }
         return tokens
     }
-    
+
     open func tokenize(_ expression: KeyPathStringExpression) -> [Token] {
         return expression.newToken(.keyword, "#keyPath") +
             expression.newToken(.startOfScope, "(") +
             tokenize(expression.expression) +
             expression.newToken(.endOfScope, ")")
     }
-    
+
     open func tokenize(_ expression: LiteralExpression) -> [Token] {
         switch expression.kind {
         case .nil:
@@ -1319,35 +1319,72 @@ open class Tokenizer {
             return entries.map { tokenize($0, node: expression) }.joined(token: expression.newToken(.delimiter, ", "))
                 .prefix(with: expression.newToken(.startOfScope, "["))
                 .suffix(with: expression.newToken(.endOfScope, "]"))
+        case .playground(let playgroundLiteral):
+            return tokenize(playgroundLiteral, expression)
         }
     }
-    
+
+    open func tokenize(_ playgroundLiteral: PlaygroundLiteral, _ expression: LiteralExpression) -> [Token] {
+        switch playgroundLiteral {
+        case let .color(red, green, blue, alpha):
+            var colorTokens = [
+                    expression.newToken(.keyword, "#colorLiteral"),
+                    expression.newToken(.startOfScope, "("),
+                ]
+            colorTokens.append(contentsOf:
+                [("red", red), ("green", green), ("blue", blue), ("alpha", alpha)]
+                    .map { expression.newToken(.keyword, $0.0) +
+                        expression.newToken(.delimiter, ": ") + tokenize($0.1) }
+                    .joined(token: expression.newToken(.delimiter, ", ")))
+            colorTokens.append(expression.newToken(.endOfScope, ")"))
+            return colorTokens
+        case .file(let resourceName):
+            return [
+                    expression.newToken(.keyword, "#fileLiteral"),
+                    expression.newToken(.startOfScope, "("),
+                    expression.newToken(.keyword, "resourceName"),
+                    expression.newToken(.delimiter, ": "),
+                ] +
+                tokenize(resourceName) +
+                expression.newToken(.endOfScope, ")")
+        case .image(let resourceName):
+            return [
+                    expression.newToken(.keyword, "#imageLiteral"),
+                    expression.newToken(.startOfScope, "("),
+                    expression.newToken(.keyword, "resourceName"),
+                    expression.newToken(.delimiter, ": "),
+                ] +
+                tokenize(resourceName) +
+                expression.newToken(.endOfScope, ")")
+        }
+    }
+
     open func tokenize(_ expression: OptionalChainingExpression) -> [Token] {
         return tokenize(expression.postfixExpression) + expression.newToken(.symbol, "?")
     }
-    
+
     open func tokenize(_ expression: ParenthesizedExpression) -> [Token] {
         return tokenize(expression.expression)
             .prefix(with: expression.newToken(.startOfScope, "("))
             .suffix(with: expression.newToken(.endOfScope, ")"))
     }
-    
+
     open func tokenize(_ expression: PostfixOperatorExpression) -> [Token] {
         return tokenize(expression.postfixExpression) +
             expression.newToken(.symbol, expression.postfixOperator)
     }
-    
+
     open func tokenize(_ expression: PostfixSelfExpression) -> [Token] {
         return tokenize(expression.postfixExpression) +
             expression.newToken(.symbol, ".") +
             expression.newToken(.keyword, "self")
     }
-    
+
     open func tokenize(_ expression: PrefixOperatorExpression) -> [Token] {
         return expression.newToken(.symbol, expression.prefixOperator) +
             tokenize(expression.postfixExpression)
     }
-    
+
     open func tokenize(_ expression: SelectorExpression) -> [Token] {
         switch expression.kind {
         case .selector(let expr):
@@ -1386,7 +1423,7 @@ open class Tokenizer {
                 [expression.newToken(.endOfScope, ")")]
         }
     }
-    
+
     open func tokenize(_ expression: SelfExpression) -> [Token] {
         switch expression.kind {
         case .self:
@@ -1406,7 +1443,7 @@ open class Tokenizer {
                 expression.newToken(.keyword, "init")
         }
     }
-    
+
     open func tokenize(_ element: SequenceExpression.Element, node: ASTNode) -> [Token] {
         switch element {
         case .expression(let expr):
@@ -1449,13 +1486,13 @@ open class Tokenizer {
                 ].joined(token: node.newToken(.space, " "))
         }
     }
-    
+
     open func tokenize(_ expression: SequenceExpression) -> [Token] {
         return expression.elements
             .map({ tokenize($0, node: expression) })
             .joined(token: expression.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ expression: SubscriptExpression) -> [Token] {
         return tokenize(expression.postfixExpression) +
             expression.newToken(.startOfScope, "[") +
@@ -1463,7 +1500,7 @@ open class Tokenizer {
                 .joined(token: expression.newToken(.delimiter, ", ")) +
             expression.newToken(.endOfScope, "]")
     }
-    
+
     open func tokenize(_ expression: SuperclassExpression) -> [Token] {
         switch expression.kind {
         case .method(let name):
@@ -1481,7 +1518,7 @@ open class Tokenizer {
                 expression.newToken(.keyword, "init")
         }
     }
-    
+
     open func tokenize(_ expression: TernaryConditionalOperatorExpression) -> [Token] {
         return [
             tokenize(expression.conditionExpression),
@@ -1491,7 +1528,7 @@ open class Tokenizer {
             tokenize(expression.falseExpression),
             ].joined(token: expression.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ expression: TryOperatorExpression) -> [Token] {
         switch expression.kind {
         case .try(let expr):
@@ -1503,7 +1540,7 @@ open class Tokenizer {
                 expression.newToken(.symbol, "!") +
                 expression.newToken(.space, " ") +
                 tokenize(expr)
-            
+
         case .optional(let expr):
             return expression.newToken(.keyword, "try") +
                 expression.newToken(.symbol, "?") +
@@ -1511,13 +1548,13 @@ open class Tokenizer {
                 tokenize(expr)
         }
     }
-    
+
     open func tokenize(_ expression: TupleExpression) -> [Token] {
         if expression.elementList.isEmpty {
             return expression.newToken(.startOfScope, "(") +
                 expression.newToken(.endOfScope, ")")
         }
-        
+
         return expression.elementList.map { element in
             var idTokens = [Token]()
             if let id = element.identifier {
@@ -1529,7 +1566,7 @@ open class Tokenizer {
             .prefix(with: expression.newToken(.startOfScope, "("))
             .suffix(with: expression.newToken(.endOfScope, ")"))
     }
-    
+
     open func tokenize(_ expression: TypeCastingOperatorExpression) -> [Token] {
         let exprTokens: [Token]
         let operatorTokens: [Token]
@@ -1558,23 +1595,23 @@ open class Tokenizer {
             typeTokens,
             ].joined(token: expression.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ expression: WildcardExpression) -> [Token] {
         return [expression.newToken(.symbol, "_")]
     }
-    
+
     open func tokenize(_ entry: DictionaryEntry, node: ASTNode) -> [Token] {
         return tokenize(entry.key) +
             entry.newToken(.delimiter, ": ", node) +
             tokenize(entry.value)
     }
-    
+
     open func tokenize(_ arg: SubscriptArgument, node: ASTNode) -> [Token] {
         return  arg.identifier.map { id in
             return arg.newToken(.identifier, id, node) + arg.newToken(.delimiter, ": ", node)
             } + tokenize(arg.expression)
     }
-    
+
     // MARK: - Generics
 
     open func tokenize(_ parameter: GenericParameterClause.GenericParameter, node: ASTNode) -> [Token] {
@@ -1585,14 +1622,14 @@ open class Tokenizer {
             return parameter.newToken(.identifier, t, node) +
                 parameter.newToken(.delimiter, ": ", node) +
                 tokenize(typeIdentifier, node: node)
-            
+
         case let .protocolConformance(t, protocolCompositionType):
             return parameter.newToken(.identifier, t, node) +
                 parameter.newToken(.delimiter, ": ", node) +
                 tokenize(protocolCompositionType, node: node)
         }
     }
-    
+
     open func tokenize(_ clause: GenericParameterClause, node: ASTNode) -> [Token] {
         return
             clause.newToken(.startOfScope, "<", node) +
@@ -1600,40 +1637,40 @@ open class Tokenizer {
                     .joined(token: clause.newToken(.delimiter, ", ", node)) +
                 clause.newToken(.endOfScope, ">", node)
     }
-    
+
     open func tokenize(_ clause: GenericWhereClause.Requirement, node: ASTNode) -> [Token] {
         switch clause {
         case let .sameType(t, type):
             return tokenize(t, node: node) +
                 clause.newToken(.symbol, " == ", node) +
                 tokenize(type, node: node)
-            
+
         case let .typeConformance(t, typeIdentifier):
             return tokenize(t, node: node) +
                 clause.newToken(.symbol, ": ", node) +
                 tokenize(typeIdentifier, node: node)
-            
+
         case let .protocolConformance(t, protocolCompositionType):
             return tokenize(t, node: node) +
                 clause.newToken(.symbol, ": ", node) +
                 tokenize(protocolCompositionType, node: node)
         }
     }
-    
+
     open func tokenize(_ clause: GenericWhereClause, node: ASTNode) -> [Token] {
         return clause.newToken(.keyword, "where", node) +
             clause.newToken(.space, " ", node) +
             clause.requirementList.map { tokenize($0, node: node) }
                 .joined(token: clause.newToken(.delimiter, ", ", node))
     }
-    
+
     open func tokenize(_ clause: GenericArgumentClause, node: ASTNode) -> [Token] {
         return clause.newToken(.startOfScope, "<", node) +
             clause.argumentList.map { tokenize($0, node: node) }
                 .joined(token: clause.newToken(.delimiter, ", ", node)) +
             clause.newToken(.endOfScope, ">", node)
     }
-    
+
     // MARK: - Patterns
 
     open func tokenize(_ pattern: Pattern, node: ASTNode) -> [Token] {
@@ -1658,7 +1695,7 @@ open class Tokenizer {
             return [node.newToken(.identifier, pattern.textDescription)]
         }
     }
-    
+
     open func tokenize(_ pattern: EnumCasePattern, node: ASTNode) -> [Token] {
         return
             pattern.typeIdentifier.map { tokenize($0, node: node) } +
@@ -1666,17 +1703,17 @@ open class Tokenizer {
                 pattern.newToken(.identifier, pattern.name, node) +
                 pattern.tuplePattern.map { tokenize($0, node: node) }
     }
-    
+
     open func tokenize(_ pattern: ExpressionPattern) -> [Token] {
         return tokenize(pattern.expression)
     }
-    
+
     open func tokenize(_ pattern: IdentifierPattern, node: ASTNode) -> [Token] {
         return
             pattern.newToken(.identifier, pattern.identifier, node) +
                 pattern.typeAnnotation.map { tokenize($0, node: node) }
     }
-    
+
     open func tokenize(_ pattern: OptionalPattern, node: ASTNode) -> [Token] {
         switch pattern.kind {
         case .identifier(let idPttrn):
@@ -1689,7 +1726,7 @@ open class Tokenizer {
             return tokenize(tuplePttrn, node: node) + pattern.newToken(.symbol, "?", node)
         }
     }
-    
+
     open func tokenize(_ pattern: TuplePattern, node: ASTNode) -> [Token] {
         return
             pattern.newToken(.startOfScope, "(", node) +
@@ -1698,7 +1735,7 @@ open class Tokenizer {
                 pattern.newToken(.endOfScope, ")", node) +
                 pattern.typeAnnotation.map { tokenize($0, node: node) }
     }
-    
+
     open func tokenize(_ element: TuplePattern.Element, node: ASTNode) -> [Token] {
         switch element {
         case .pattern(let pattern):
@@ -1709,7 +1746,7 @@ open class Tokenizer {
                 tokenize(pattern, node: node)
         }
     }
-    
+
     open func tokenize(_ pattern: TypeCastingPattern, node: ASTNode) -> [Token] {
         switch pattern.kind {
         case .is(let type):
@@ -1724,7 +1761,7 @@ open class Tokenizer {
                 tokenize(type, node: node)
         }
     }
-    
+
     open func tokenize(_ pattern: ValueBindingPattern, node: ASTNode) -> [Token] {
         switch pattern.kind {
         case .var(let p):
@@ -1737,14 +1774,14 @@ open class Tokenizer {
                 tokenize(p, node: node)
         }
     }
-    
+
     open func tokenize(_ pattern: WildcardPattern, node: ASTNode) -> [Token] {
         return pattern.newToken(.keyword, "_", node) +
             pattern.typeAnnotation.map { tokenize($0, node: node) }
     }
-    
+
     // MARK: - Statements
-    
+
     open func tokenize(_ statement: Statement) -> [Token] { /*
          swift-lint:suppress(high_cyclomatic_complexity) */
         switch statement {
@@ -1793,14 +1830,14 @@ open class Tokenizer {
             ]
         }
     }
-    
+
     open func tokenize(_ statement: BreakStatement) -> [Token] {
         return [
             [statement.newToken(.keyword, "break")],
             statement.labelName.map { [statement.newToken(.identifier, $0)] } ?? []
             ].joined(token: statement.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ statement: CompilerControlStatement) -> [Token] {
         switch statement.kind {
         case .if(let condition):
@@ -1824,21 +1861,21 @@ open class Tokenizer {
                 [statement.newToken(.endOfScope, ")")]
         }
     }
-    
+
     open func tokenize(_ statement: ContinueStatement) -> [Token] {
         return [
             [statement.newToken(.keyword, "continue")],
             statement.labelName.map { [statement.newToken(.identifier, $0)] } ?? []
             ].joined(token: statement.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ statement: DeferStatement) -> [Token] {
         return [
             [statement.newToken(.keyword, "defer")],
             tokenize(statement.codeBlock)
             ].joined(token: statement.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ statement: DoStatement) -> [Token] {
         return [
             [statement.newToken(.keyword, "do")],
@@ -1846,11 +1883,11 @@ open class Tokenizer {
             tokenize(statement.catchClauses, node: statement)
             ].joined(token: statement.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ statements: [DoStatement.CatchClause], node: ASTNode) -> [Token] {
         return statements.map { tokenize($0, node: node) }.joined(token: node.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ statement: DoStatement.CatchClause, node: ASTNode) -> [Token] {
         let catchTokens = [statement.newToken(.keyword, "catch", node)]
         let patternTokens = statement.pattern.map { tokenize($0, node: node) } ?? []
@@ -1865,13 +1902,13 @@ open class Tokenizer {
             codeTokens
             ].joined(token: statement.newToken(.space, " ", node))
     }
-    
+
     open func tokenize(_ statement: FallthroughStatement) -> [Token] {
         return [statement.newToken(.keyword, "fallthrough")]
     }
-    
+
     open func tokenize(_ statement: ForInStatement) -> [Token] {
-        return [
+        let tokens: [[Token]] = [
             [statement.newToken(.keyword, "for")],
             statement.item.isCaseMatching ? [statement.newToken(.keyword, "case")] : [],
             tokenize(statement.item.matchingPattern, node: statement),
@@ -1880,9 +1917,10 @@ open class Tokenizer {
             statement.item.whereClause.map { _ in [statement.newToken(.keyword, "where")] } ?? [],
             statement.item.whereClause.map { tokenize($0) } ?? [],
             tokenize(statement.codeBlock)
-            ].joined(token: statement.newToken(.space, " "))
+            ]
+        return tokens.joined(token: statement.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ statement: GuardStatement) -> [Token] {
         return [
             [statement.newToken(.keyword, "guard")],
@@ -1891,7 +1929,7 @@ open class Tokenizer {
             tokenize(statement.codeBlock)
             ].joined(token: statement.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ statement: IfStatement) -> [Token] {
         return [
             [statement.newToken(.keyword, "if")],
@@ -1900,7 +1938,7 @@ open class Tokenizer {
             statement.elseClause.map { tokenize($0, node: statement) } ?? []
             ].joined(token: statement.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ statement: IfStatement.ElseClause, node: ASTNode) -> [Token] {
         var blockTokens = [Token]()
         switch statement {
@@ -1914,14 +1952,14 @@ open class Tokenizer {
             blockTokens
             ].joined(token: statement.newToken(.space, " ", node))
     }
-    
+
     open func tokenize(_ statement: LabeledStatement) -> [Token] {
         return
             statement.newToken(.identifier, statement.labelName, statement) +
                 statement.newToken(.delimiter, ": ") +
                 tokenize(statement.statement)
     }
-    
+
     open func tokenize(_ statement: RepeatWhileStatement) -> [Token] {
         return [
             [statement.newToken(.keyword, "repeat")],
@@ -1930,14 +1968,14 @@ open class Tokenizer {
             tokenize(statement.conditionExpression),
             ].joined(token: statement.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ statement: ReturnStatement) -> [Token] {
         return [
             [statement.newToken(.keyword, "return")],
             statement.expression.map { tokenize($0) } ?? []
             ].joined(token: statement.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ statement: SwitchStatement) -> [Token] {
         var casesTokens = statement.newToken(.startOfScope, "{") + statement.newToken(.endOfScope, "}")
         if !statement.cases.isEmpty {
@@ -1948,26 +1986,28 @@ open class Tokenizer {
                 [statement.newToken(.endOfScope, "}")]
                 ].joined(token: statement.newToken(.linebreak, "\n"))
         }
-        
+
         return [
             [statement.newToken(.keyword, "switch")],
             tokenize(statement.expression),
             casesTokens
             ].joined(token: statement.newToken(.space, " "))
     }
-    
+
     open func tokenize(_ statement: SwitchStatement.Case, node: ASTNode) -> [Token] {
         switch statement {
         case let .case(itemList, stmts):
-            return
-                statement.newToken(.keyword, "case", node) +
-                    statement.newToken(.space, " ", node) +
-                    itemList.map { tokenize($0, node: node) }
-                        .joined(token: statement.newToken(.delimiter, ", ", node)) +
-                    statement.newToken(.delimiter, ":", node) +
-                    statement.newToken(.linebreak, "\n", node) +
-                    indent(tokenize(stmts, node: node))
-            
+            var tokens = [
+                    statement.newToken(.keyword, "case", node),
+                    statement.newToken(.space, " ", node),
+                ]
+            tokens.append(contentsOf: itemList
+                .map { tokenize($0, node: node) }
+                .joined(token: statement.newToken(.delimiter, ", ", node)))
+            tokens.append(statement.newToken(.delimiter, ":", node))
+            tokens.append(statement.newToken(.linebreak, "\n", node))
+            tokens.append(contentsOf: indent(tokenize(stmts, node: node)))
+            return tokens
         case .default(let stmts):
             return
                 statement.newToken(.keyword, "default", node) +
@@ -1976,7 +2016,7 @@ open class Tokenizer {
                     indent(tokenize(stmts, node: node))
         }
     }
-    
+
     open func tokenize(_ statement: SwitchStatement.Case.Item, node: ASTNode) -> [Token] {
         return [
             tokenize(statement.pattern, node: node),
@@ -1984,14 +2024,14 @@ open class Tokenizer {
             statement.whereExpression.map { tokenize($0) } ?? []
             ].joined(token: statement.newToken(.space, " ", node))
     }
-    
+
     open func tokenize(_ statement: ThrowStatement) -> [Token] {
         return
             statement.newToken(.keyword, "throw") +
                 statement.newToken(.space, " ") +
                 tokenize(statement.expression)
     }
-    
+
     open func tokenize(_ statement: WhileStatement) -> [Token] {
         return [
             [statement.newToken(.keyword, "while")],
@@ -1999,17 +2039,17 @@ open class Tokenizer {
             tokenize(statement.codeBlock)
             ].joined(token: statement.newToken(.space, " "))
     }
-    
+
     // MARK: Utils
-    
+
     open func tokenize(_ statements: [Statement], node: ASTNode) -> [Token] {
         return statements.map(tokenize).joined(token: node.newToken(.linebreak, "\n"))
     }
-    
+
     open func tokenize(_ conditions: ConditionList, node: ASTNode) -> [Token] {
         return conditions.map { tokenize($0, node: node) }.joined(token: node.newToken(.delimiter, ", "))
     }
-    
+
     open func tokenize(_ condition: Condition, node: ASTNode) -> [Token] {
         switch condition {
         case .expression(let expr):
@@ -2039,7 +2079,7 @@ open class Tokenizer {
                 ].joined(token: condition.newToken(.space, " ", node))
         }
     }
-    
+
     open func tokenize(_ condition:  AvailabilityCondition, node: ASTNode) -> [Token] {
         return
             condition.newToken(.keyword, "#available", node) +
@@ -2048,11 +2088,11 @@ open class Tokenizer {
                     .joined(token: condition.newToken(.delimiter, ", ", node)) +
                 condition.newToken(.endOfScope, ")", node)
     }
-    
+
     open func tokenize(_ argument: AvailabilityCondition.Argument, node: ASTNode) -> [Token] {
         return [argument.newToken(.identifier, argument.textDescription, node)]
     }
-    
+
     // MARK: - Types
 
     open func tokenize(_ type: Type, node: ASTNode) -> [Token] {
@@ -2083,17 +2123,17 @@ open class Tokenizer {
             return [node.newToken(.identifier, type.textDescription)]
         }
     }
-    
+
     open func tokenize(_ type: AnyType, node: ASTNode) -> [Token] {
         return [type.newToken(.keyword, "Any", node)]
     }
-    
+
     open func tokenize(_ type: ArrayType, node: ASTNode) -> [Token] {
         return type.newToken(.startOfScope, "[", node) +
             tokenize(type.elementType, node: node) +
             type.newToken(.endOfScope, "]", node)
     }
-    
+
     open func tokenize(_ type: DictionaryType, node: ASTNode) -> [Token] {
         return (
             tokenize(type.keyType, node: node) +
@@ -2103,17 +2143,17 @@ open class Tokenizer {
             ).prefix(with: type.newToken(.startOfScope, "[", node))
             .suffix(with: type.newToken(.endOfScope, "]", node))
     }
-    
+
     open func tokenize(_ type: FunctionType, node: ASTNode) -> [Token] {
         let attrs = tokenize(type.attributes, node: node)
         let args = type.newToken(.startOfScope, "(", node) +
             type.arguments.map { tokenize($0, node: node) }
                 .joined(token: type.newToken(.delimiter, ", ", node)) +
             type.newToken(.endOfScope, ")", node)
-        
+
         let throwTokens = tokenize(type.throwsKind, node: node)
         let returnTokens = tokenize(type.returnType, node: node)
-        
+
         return [
             attrs,
             args,
@@ -2122,7 +2162,7 @@ open class Tokenizer {
             returnTokens
             ].joined(token: type.newToken(.space, " ", node))
     }
-    
+
     open func tokenize(_ type: FunctionType.Argument, node: ASTNode) -> [Token] {
         let tokens = [
             type.externalName.map { [type.newToken(.identifier, $0, node)]} ?? [],
@@ -2138,12 +2178,12 @@ open class Tokenizer {
         return tokens.joined(token: type.newToken(.space, " ", node)) +
         variadicDots
     }
-    
+
     open func tokenize(_ type: ImplicitlyUnwrappedOptionalType, node: ASTNode) -> [Token] {
         return tokenize(type.wrappedType, node: node) +
             type.newToken(.symbol, "!", node)
     }
-    
+
     open func tokenize(_ type: MetatypeType, node: ASTNode) -> [Token] {
         let kind: Token
         switch type.kind {
@@ -2157,12 +2197,12 @@ open class Tokenizer {
                 [kind]
             ].joined()
     }
-    
+
     open func tokenize(_ type: OptionalType, node: ASTNode) -> [Token] {
         return tokenize(type.wrappedType, node: node) +
             type.newToken(.symbol, "?", node)
     }
-    
+
     open func tokenize(_ type: ProtocolCompositionType, node: ASTNode) -> [Token] {
         if node is ClassDeclaration || node is StructDeclaration || node is EnumDeclaration {
             return
@@ -2176,17 +2216,17 @@ open class Tokenizer {
                 .joined(token: type.newToken(.delimiter, " & ", node))
         }
     }
-    
+
     open func tokenize(_ type: SelfType, node: ASTNode) -> [Token] {
         return [type.newToken(.keyword, "Self", node)]
     }
-    
+
     open func tokenize(_ type: TupleType, node: ASTNode) -> [Token] {
         return type.newToken(.startOfScope, "(", node) +
             type.elements.map { tokenize($0, node: node) }.joined(token: type.newToken(.delimiter, ", ", node)) +
             type.newToken(.endOfScope, ")", node)
     }
-    
+
     open func tokenize(_ type: TupleType.Element, node: ASTNode) -> [Token] {
         let inoutTokens = type.isInOutParameter ? [type.newToken(.keyword, "inout", node)] : []
         var nameTokens = [Token]()
@@ -2201,7 +2241,7 @@ open class Tokenizer {
             tokenize(type.type, node: node)
             ].joined(token: type.newToken(.space, " ", node))
     }
-    
+
     open func tokenize(_ type: TypeAnnotation, node: ASTNode) -> [Token] {
         let inoutTokens = type.isInOutParameter ? [type.newToken(.keyword, "inout", node)] : []
         return [
@@ -2211,25 +2251,25 @@ open class Tokenizer {
             tokenize(type.type, node: node)
             ].joined(token: type.newToken(.space, " ", node))
     }
-    
+
     open func tokenize(_ type: TypeIdentifier, node: ASTNode) -> [Token] {
         return type.names.map { tokenize($0, node: node) }
             .joined(token: type.newToken(.delimiter, ".", node))
     }
-    
+
     open func tokenize(_ type: TypeIdentifier.TypeName, node: ASTNode) -> [Token] {
         return type.newToken(.identifier, type.name, node) +
             type.genericArgumentClause.map { tokenize($0, node: node) }
     }
-    
+
     open func tokenize(_ type: TypeInheritanceClause, node: ASTNode) -> [Token] {
         var inheritanceTokens = type.classRequirement ? [[type.newToken(.keyword, "class", node)]] : [[]]
         inheritanceTokens += type.typeInheritanceList.map { tokenize($0, node: node) }
-        
+
         return type.newToken(.symbol, ": ", node) +
             inheritanceTokens.joined(token: type.newToken(.delimiter, ", ", node))
     }
-    
+
     // MARK: - Utils
     open func tokenize(_ origin: ThrowsKind, node: ASTNode) -> [Token] {
         switch origin {
