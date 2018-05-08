@@ -15,5 +15,5 @@
 */
 
 public let SWIFT_TRANSFORM = "swift-transform"
-public let SWIFT_TRANSFORM_VERSION = "0.1.1"
-public let SWIFT_AST_VERSION = "0.4.1"
+public let SWIFT_TRANSFORM_VERSION = "0.1.3"
+public let SWIFT_AST_VERSION = "0.4.3"
