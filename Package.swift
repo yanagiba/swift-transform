@@ -37,7 +37,7 @@ let package = Package(
   dependencies: [
     .package(
       url: "https://github.com/yanagiba/swift-ast",
-      .exact("0.4.3")
+      .exact("0.4.4")
     ),
     .package(
       url: "https://github.com/yanagiba/bocho",
