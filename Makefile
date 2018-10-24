@@ -6,6 +6,7 @@ all: build
 
 clean:
 	swift package clean
+	rm -rf .build
 
 build:
 	swift build
