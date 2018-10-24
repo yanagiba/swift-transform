@@ -15,6 +15,6 @@ install:
 - swift --version
 script:
 - make test
-- ./lint.sh
 after_success:
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./runXcodeTest.sh; bash <(curl -s https://codecov.io/bash); fi
+- ./lint.sh
