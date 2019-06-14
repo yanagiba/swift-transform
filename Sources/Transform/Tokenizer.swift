@@ -1,5 +1,5 @@
 /*
-   Copyright 2017-2018 Ryuichi Laboratories and the Yanagiba project contributors
+   Copyright 2017-2019 Ryuichi Laboratories and the Yanagiba project contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -1257,6 +1257,8 @@ open class Tokenizer {
             return expression.newToken(.symbol, "$") +
                 expression.newToken(.number, "\(i)") +
                 generic.map { tokenize($0, node: expression) }
+        case .bindingReference(let refVar):
+            return expression.newToken(.symbol, "$") + expression.newToken(.identifier, refVar)
         }
     }
 
